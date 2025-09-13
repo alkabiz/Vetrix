@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { verifyToken, User } from "./auth";
-import { UserRole } from "./types";
+import { UserRole } from "../lib/types";
 import { permissions } from "./permissions";
 
 // Tipo para el contexto de autenticación
@@ -27,19 +27,19 @@ export function withAuth(handler: AuthenticatedHandler) {
       const authHeader = request.headers.get("authorization");
 
       if (!authHeader || !authHeader.startsWith("Bearer ")) {
-        return createErrorResponse("Authorization token required", 401);
+        return createErrorResponse("Se requiere token de autorización", 401);
       }
 
       const token = authHeader.substring(7);
       
       if (!token.trim()) {
-        return createErrorResponse("Invalid authorization token", 401);
+        return createErrorResponse("Token de autorización no válido", 401);
       }
 
       const user = verifyToken(token);
 
       if (!user) {
-        return createErrorResponse("Invalid or expired token", 401);
+        return createErrorResponse("Token no válido o caducado", 401);
       }
 
       // Crear contexto de autenticación
@@ -47,8 +47,8 @@ export function withAuth(handler: AuthenticatedHandler) {
 
       return handler(request, authContext);
     } catch (error) {
-      console.error("Auth middleware error:", error);
-      return createErrorResponse("Authentication failed", 401);
+      console.error("Error de middleware de autenticación:", error);
+      return createErrorResponse("Error en la autenticación", 401);
     }
   };
 }
@@ -61,7 +61,7 @@ export function withRole(allowedRoles: UserRole[]) {
 
       if (!allowedRoles.includes(user.role)) {
         return createErrorResponse(
-          `Access denied. Required roles: ${allowedRoles.join(", ")}`, 
+          `Acceso denegado. Funciones requeridas: ${allowedRoles.join(", ")}`, 
           403
         );
       }
@@ -77,7 +77,7 @@ export function withPermission(permissionCheck: (role: UserRole) => boolean) {
       const { user } = context;
 
       if (!permissionCheck(user.role)) {
-        return createErrorResponse("Insufficient permissions", 403);
+        return createErrorResponse("Permisos insuficientes", 403);
       }
 
       return handler(request, context);

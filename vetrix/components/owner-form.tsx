@@ -68,7 +68,7 @@ export function OwnerForm({ owner, open, onOpenChange, onSubmit }: OwnerFormProp
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Name *</Label>
+            <Label htmlFor="name">Nombre *</Label>
             <Input
               id="name"
               value={formData.name}
@@ -77,7 +77,7 @@ export function OwnerForm({ owner, open, onOpenChange, onSubmit }: OwnerFormProp
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="phone">Phone</Label>
+            <Label htmlFor="phone">Teléfono</Label>
             <Input
               id="phone"
               type="tel"
@@ -95,7 +95,7 @@ export function OwnerForm({ owner, open, onOpenChange, onSubmit }: OwnerFormProp
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="address">Address</Label>
+            <Label htmlFor="address">Dirección</Label>
             <Textarea
               id="address"
               value={formData.address}
@@ -105,10 +105,10 @@ export function OwnerForm({ owner, open, onOpenChange, onSubmit }: OwnerFormProp
           </div>
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              Cancelar
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Saving..." : owner ? "Update" : "Create"}
+              {isSubmitting ? "Guardando..." : owner ? "Actualizar" : "Crear"}
             </Button>
           </div>
         </form>

@@ -39,44 +39,44 @@ interface DashboardLayoutProps {
 
 const navigation = [
   {
-    name: "Dashboard",
+    name: "Panel de control",
     href: "/",
     icon: Stethoscope,
     roles: ["admin", "vet", "assistant"], // All roles can access dashboard
   },
   {
-    name: "Owners",
+    name: "Propietarios",
     href: "/owners",
     icon: Users,
     roles: ["admin", "vet", "assistant"],
   },
   {
-    name: "Pets",
+    name: "Mascotas",
     href: "/pets",
     icon: Heart,
     roles: ["admin", "vet", "assistant"],
   },
   {
-    name: "Appointments",
+    name: "Citas",
     href: "/appointments",
     icon: Calendar,
     badge: "2",
     roles: ["admin", "vet", "assistant"],
   },
   {
-    name: "Medical Records",
+    name: "Historial médico",
     href: "/medical-records",
     icon: FileText,
     roles: ["admin", "vet", "assistant"], // Assistants can view but not edit
   },
   {
-    name: "Invoices",
+    name: "Facturas",
     href: "/invoices",
     icon: Receipt,
     roles: ["admin", "vet", "assistant"],
   },
   {
-    name: "User Management",
+    name: "Admin. usuarios",
     href: "/users",
     icon: UserCog,
     roles: ["admin"], // Only admin can access
@@ -134,8 +134,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 <Stethoscope className="h-6 w-6" />
               </div>
               <div>
-                <h1 className="text-lg font-semibold">VetCare Pro</h1>
-                <p className="text-sm text-muted-foreground">Management System</p>
+                <h1 className="text-lg font-semibold">Vetrix Pro</h1>
+                <p className="text-sm text-muted-foreground">Sistema de gestión</p>
               </div>
             </div>
             <Button variant="ghost" size="sm" className="lg:hidden" onClick={() => setSidebarOpen(false)}>
@@ -190,8 +190,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           {/* Footer */}
           <div className="border-t p-4">
             <div className="text-xs text-muted-foreground">
-              <p>VetCare Pro v1.0</p>
-              <p>Professional Veterinary Management</p>
+              <p>Vetrix Pro v1.0</p>
+              <p>Gestión veterinaria profesional</p>
             </div>
           </div>
         </div>
@@ -241,16 +241,16 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
                   <User className="mr-2 h-4 w-4" />
-                  <span>Profile</span>
+                  <span>Perfil</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
                   <Settings className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
+                  <span>Ajustes</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={logout} className="text-red-600 focus:text-red-600">
                   <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
+                  <span>Salir</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

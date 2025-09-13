@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import { useJwt } from "react-jwt";
 import bcrypt from 'bcryptjs';
 import { User, AuthUser, UserRole } from './types';
 import { authConfig, VALID_ROLES } from './config';
@@ -23,20 +24,20 @@ export const validateUserData = (userData: {
 }): { isValid: boolean; errors: string[] } => {
   const errors: string[] = [];
 
-  if (userData.username && userData.username.length < 3) {
-    errors.push('Username must be at least 3 characters long');
+  if (userData.username && userData.username.length < 5) {
+    errors.push('El nombre de usuario debe tener al menos 5 caracteres.');
   }
 
   if (userData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userData.email)) {
-    errors.push('Invalid email format');
+    errors.push('Formato de correo electrónico no válido');
   }
 
   if (userData.password && userData.password.length < 8) {
-    errors.push('Password must be at least 8 characters long');
+    errors.push('La contraseña debe tener al menos 8 caracteres.');
   }
 
   if (userData.role && !VALID_ROLES.includes(userData.role as UserRole)) {
-    errors.push(`Invalid role. Must be one of: ${VALID_ROLES.join(', ')}`);
+    errors.push(`Rol no válido. Debe ser uno de los siguientes: ${VALID_ROLES.join(', ')}`);
   }
 
   return {
@@ -56,7 +57,7 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
 export function generateToken(user: User): string {
   // Validar que el usuario tenga un role válido
   if (!VALID_ROLES.includes(user.role)) {
-    throw new Error('Invalid user role');
+    throw new Error('Rol de usuario no válido');
   }
 
   return jwt.sign(
@@ -92,8 +93,8 @@ export async function findUserByEmail(email: string): Promise<AuthUser | null> {
     const users = await getMockUsersCache();
     return users.find((user) => user.email.toLowerCase() === email.toLowerCase()) || null;
   } catch (error) {
-    console.error('Error finding user by email:', error);
-    throw new Error('Database error while finding user');
+    console.error('Error al buscar al usuario por correo electrónico:', error);
+    throw new Error('Error en la base de datos al buscar un usuario');
   }
 }
 
@@ -102,8 +103,8 @@ export async function findUserByUsername(username: string): Promise<AuthUser | n
     const users = await getMockUsersCache();
     return users.find((user) => user.username.toLowerCase() === username.toLowerCase()) || null;
   } catch (error) {
-    console.error('Error finding user by username:', error);
-    throw new Error('Database error while finding user');
+    console.error('Error al buscar al usuario por su nombre de usuario:', error);
+    throw new Error('Error en la base de datos al buscar un usuario');
   }
 }
 
@@ -117,8 +118,8 @@ export async function findUserById(id: number): Promise<User | null> {
     const { password_hash, ...userWithoutPassword } = user;
     return userWithoutPassword;
   } catch (error) {
-    console.error('Error finding user by ID:', error);
-    throw new Error('Database error while finding user');
+    console.error('Error al buscar al usuario por su ID:', error);
+    throw new Error('Error en la base de datos al buscar un usuario');
   }
 }
 
@@ -131,7 +132,7 @@ export async function createUser(userData: {
   // Validar datos de entrada
   const validation = validateUserData(userData);
   if (!validation.isValid) {
-    throw new Error(`Validation failed: ${validation.errors.join(', ')}`);
+    throw new Error(`La validación falló: ${validation.errors.join(', ')}`);
   }
 
   try {
@@ -139,11 +140,11 @@ export async function createUser(userData: {
     
     // Verificar que no exista usuario con el mismo email o username
     if (users.some(user => user.email.toLowerCase() === userData.email.toLowerCase())) {
-      throw new Error('User with this email already exists');
+      throw new Error('El usuario con este correo electrónico ya existe.');
     }
     
     if (users.some(user => user.username.toLowerCase() === userData.username.toLowerCase())) {
-      throw new Error('User with this username already exists');
+      throw new Error('El usuario con este nombre de usuario ya existe.');
     }
 
     const passwordHash = await hashPassword(userData.password);
@@ -162,11 +163,11 @@ export async function createUser(userData: {
     const { password_hash, ...userWithoutPassword } = newUser;
     return userWithoutPassword;
   } catch (error) {
-    console.error('Error creating user:', error);
+    console.error('Error al crear usuario:', error);
     if (error instanceof Error) {
       throw error;
     }
-    throw new Error('Database error while creating user');
+    throw new Error('Error en la base de datos al crear un usuario');
   }
 }
 
@@ -175,7 +176,7 @@ export async function getAllUsers(): Promise<User[]> {
     const users = await getMockUsersCache();
     return users.map(({ password_hash, ...user }) => user);
   } catch (error) {
-    console.error('Error getting all users:', error);
-    throw new Error('Database error while fetching users');
+    console.error('Error al obtener todos los usuarios:', error);
+    throw new Error('Error en la base de datos al recuperar usuarios');
   }
 }

@@ -187,7 +187,7 @@ export function InvoiceForm({ invoice, owners, pets, appointments, open, onOpenC
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="owner_id">Owner *</Label>
+              <Label htmlFor="owner_id">Propietario *</Label>
               <Select
                 value={formData.owner_id}
                 onValueChange={(value) => setFormData({ ...formData, owner_id: value })}
@@ -206,14 +206,14 @@ export function InvoiceForm({ invoice, owners, pets, appointments, open, onOpenC
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="pet_id">Pet *</Label>
+              <Label htmlFor="pet_id">Mascota *</Label>
               <Select
                 value={formData.pet_id}
                 onValueChange={(value) => setFormData({ ...formData, pet_id: value })}
                 disabled={!formData.owner_id}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder={formData.owner_id ? "Select a pet" : "Select an owner first"} />
+                  <SelectValue placeholder={formData.owner_id ? "Selecciona una mascota" : "Seleccione primero un propietario."} />
                 </SelectTrigger>
                 <SelectContent>
                   {filteredPets.map((pet) => (
@@ -227,16 +227,16 @@ export function InvoiceForm({ invoice, owners, pets, appointments, open, onOpenC
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="appointment_id">Related Appointment (Optional)</Label>
+            <Label htmlFor="appointment_id">Cita relacionada (opcional)</Label>
             <Select
               value={formData.appointment_id}
               onValueChange={(value) => setFormData({ ...formData, appointment_id: value })}
             >
               <SelectTrigger>
-                <SelectValue placeholder={formData.pet_id ? "Select an appointment" : "Select a pet first"} />
+                <SelectValue placeholder={formData.pet_id ? "Selecciona una cita" : "Seleccione primero una mascota."} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">No appointment</SelectItem>
+                <SelectItem value="none">Sin cita previa</SelectItem>
                 {filteredAppointments.map((appointment) => (
                   <SelectItem key={appointment.id} value={String(appointment.id)}>
                     {formatAppointmentOption(appointment)}
@@ -248,7 +248,7 @@ export function InvoiceForm({ invoice, owners, pets, appointments, open, onOpenC
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="invoice_date">Invoice Date *</Label>
+              <Label htmlFor="invoice_date">Fecha de la factura *</Label>
               <Input
                 id="invoice_date"
                 type="date"
@@ -259,7 +259,7 @@ export function InvoiceForm({ invoice, owners, pets, appointments, open, onOpenC
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
+              <Label htmlFor="status">Estado</Label>
               <Select
                 value={formData.status}
                 onValueChange={(value) => setFormData({ ...formData, status: value as any })}
@@ -280,10 +280,10 @@ export function InvoiceForm({ invoice, owners, pets, appointments, open, onOpenC
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">Services & Medications</CardTitle>
+                <CardTitle className="text-lg">Servicios y medicamentos</CardTitle>
                 <Button type="button" variant="outline" size="sm" onClick={addService}>
                   <Plus className="mr-2 h-4 w-4" />
-                  Add Service
+                  Añadir servicio
                 </Button>
               </div>
             </CardHeader>
@@ -292,7 +292,7 @@ export function InvoiceForm({ invoice, owners, pets, appointments, open, onOpenC
                 <div key={index} className="flex items-center gap-2">
                   <div className="flex-1">
                     <Input
-                      placeholder="Service description (e.g., Annual exam, Vaccination)"
+                      placeholder="Descripción del servicio (por ejemplo, examen anual, vacunación)"
                       value={service.description}
                       onChange={(e) => updateService(index, "description", e.target.value)}
                     />
@@ -302,7 +302,7 @@ export function InvoiceForm({ invoice, owners, pets, appointments, open, onOpenC
                       type="number"
                       min="0"
                       step="0.01"
-                      placeholder="Amount"
+                      placeholder="Importe"
                       value={service.amount || ""}
                       onChange={(e) => updateService(index, "amount", Number.parseFloat(e.target.value) || 0)}
                     />
@@ -325,25 +325,25 @@ export function InvoiceForm({ invoice, owners, pets, appointments, open, onOpenC
           </Card>
 
           <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
+            <Label htmlFor="notes">Notas</Label>
             <Textarea
               id="notes"
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               rows={2}
-              placeholder="Any additional notes about the invoice..."
+              placeholder="Cualquier observación adicional sobre la factura..."
             />
           </div>
 
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              Cancelar
             </Button>
             <Button
               type="submit"
               disabled={isSubmitting || !formData.owner_id || !formData.pet_id || calculateTotal() === 0}
             >
-              {isSubmitting ? "Saving..." : invoice ? "Update" : "Create"}
+              {isSubmitting ? "Guardando..." : invoice ? "Actualizar" : "Crear"}
             </Button>
           </div>
         </form>

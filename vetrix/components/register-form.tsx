@@ -35,17 +35,17 @@ export function RegisterForm({ open, onOpenChange }: RegisterFormProps) {
 
     // Validation
     if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match")
+      setError("Las contraseñas no coinciden.")
       return
     }
 
-    if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters long")
+    if (formData.password.length < 12) {
+      setError("La contraseña debe tener al menos 12 caracteres.")
       return
     }
 
     if (!formData.role) {
-      setError("Please select a role")
+      setError("Por favor, seleccione una función")
       return
     }
 
@@ -70,12 +70,12 @@ export function RegisterForm({ open, onOpenChange }: RegisterFormProps) {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || "Registration failed")
+        throw new Error(data.error || "Error en el registro")
       }
 
       toast({
         title: "Success",
-        description: "User registered successfully",
+        description: "Usuario registrado correctamente",
       })
 
       // Reset form and close dialog
@@ -88,7 +88,7 @@ export function RegisterForm({ open, onOpenChange }: RegisterFormProps) {
       })
       onOpenChange(false)
     } catch (error) {
-      setError(error instanceof Error ? error.message : "Registration failed")
+      setError(error instanceof Error ? error.message : "Error en el registro")
     } finally {
       setIsLoading(false)
     }
@@ -105,8 +105,8 @@ export function RegisterForm({ open, onOpenChange }: RegisterFormProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Register New User</DialogTitle>
-          <DialogDescription>Create a new user account with role assignment.</DialogDescription>
+          <DialogTitle>Registrar nuevo usuario</DialogTitle>
+          <DialogDescription>Cree una nueva cuenta de usuario con asignación de roles.</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -117,12 +117,12 @@ export function RegisterForm({ open, onOpenChange }: RegisterFormProps) {
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="username">Username</Label>
+            <Label htmlFor="username">Nombre de usuario</Label>
             <Input
               id="username"
               name="username"
               type="text"
-              placeholder="Enter username"
+              placeholder="Ingrese su nombre de usuario"
               value={formData.username}
               onChange={handleChange}
               required
@@ -136,7 +136,7 @@ export function RegisterForm({ open, onOpenChange }: RegisterFormProps) {
               id="email"
               name="email"
               type="email"
-              placeholder="Enter email address"
+              placeholder="Ingrese su dirección de correo electrónico"
               value={formData.email}
               onChange={handleChange}
               required
@@ -145,12 +145,12 @@ export function RegisterForm({ open, onOpenChange }: RegisterFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">Contraseña</Label>
             <Input
               id="password"
               name="password"
               type="password"
-              placeholder="Enter password (min 6 characters)"
+              placeholder="Ingrese la contraseña (mínimo 12 caracteres)"
               value={formData.password}
               onChange={handleChange}
               required
@@ -159,12 +159,12 @@ export function RegisterForm({ open, onOpenChange }: RegisterFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirm Password</Label>
+            <Label htmlFor="confirmPassword">Confirmar contraseña</Label>
             <Input
               id="confirmPassword"
               name="confirmPassword"
               type="password"
-              placeholder="Confirm password"
+              placeholder="Confirmar contraseña"
               value={formData.confirmPassword}
               onChange={handleChange}
               required
@@ -188,16 +188,16 @@ export function RegisterForm({ open, onOpenChange }: RegisterFormProps) {
 
           <div className="flex gap-2 pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
-              Cancel
+              Cancelar
             </Button>
             <Button type="submit" disabled={isLoading} className="flex-1">
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating...
+                  Creando...
                 </>
               ) : (
-                "Create User"
+                "Crear usuario"
               )}
             </Button>
           </div>

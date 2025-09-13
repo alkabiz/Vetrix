@@ -125,7 +125,7 @@ export function MedicalRecordForm({
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="pet_id">Pet *</Label>
+            <Label htmlFor="pet_id">Mascota *</Label>
             <Select value={formData.pet_id} onValueChange={(value) => setFormData({ ...formData, pet_id: value })}>
               <SelectTrigger>
                 <SelectValue placeholder="Select a pet" />
@@ -141,16 +141,16 @@ export function MedicalRecordForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="appointment_id">Related Appointment (Optional)</Label>
+            <Label htmlFor="appointment_id">Cita relacionada (opcional)</Label>
             <Select
               value={formData.appointment_id}
               onValueChange={(value) => setFormData({ ...formData, appointment_id: value })}
             >
               <SelectTrigger>
-                <SelectValue placeholder={formData.pet_id ? "Select an appointment" : "Select a pet first"} />
+                <SelectValue placeholder={formData.pet_id ? "Selecciona una cita" : "Selecciona primero una mascota."} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">No appointment</SelectItem>
+                <SelectItem value="none">Sin cita previa</SelectItem>
                 {filteredAppointments.map((appointment) => (
                   <SelectItem key={appointment.id} value={String(appointment.id)}>
                     {formatAppointmentOption(appointment)}
@@ -161,7 +161,7 @@ export function MedicalRecordForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="visit_date">Visit Date *</Label>
+            <Label htmlFor="visit_date">Fecha de la visita *</Label>
             <Input
               id="visit_date"
               type="date"
@@ -172,56 +172,56 @@ export function MedicalRecordForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="reason_for_visit">Reason for Visit *</Label>
+            <Label htmlFor="reason_for_visit">Motivo de la visita *</Label>
             <Textarea
               id="reason_for_visit"
               value={formData.reason_for_visit}
               onChange={(e) => setFormData({ ...formData, reason_for_visit: e.target.value })}
               rows={2}
-              placeholder="e.g., Annual checkup, limping, vaccination, etc."
+              placeholder="Por ejemplo, revisión anual, cojera, vacunación, etc."
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="diagnosis">Diagnosis</Label>
+            <Label htmlFor="diagnosis">Diagnóstico</Label>
             <Textarea
               id="diagnosis"
               value={formData.diagnosis}
               onChange={(e) => setFormData({ ...formData, diagnosis: e.target.value })}
               rows={2}
-              placeholder="Clinical diagnosis or findings..."
+              placeholder="Diagnóstico clínico o hallazgos..."
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="treatment">Treatment</Label>
+            <Label htmlFor="treatment">Tratamiento</Label>
             <Textarea
               id="treatment"
               value={formData.treatment}
               onChange={(e) => setFormData({ ...formData, treatment: e.target.value })}
               rows={3}
-              placeholder="Treatment plan, medications, procedures, etc."
+              placeholder="Plan de tratamiento, medicamentos, procedimientos, etc."
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="notes">Additional Notes</Label>
+            <Label htmlFor="notes">Notas adicionales</Label>
             <Textarea
               id="notes"
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               rows={2}
-              placeholder="Any additional observations or notes..."
+              placeholder="Cualquier observación o nota adicional..."
             />
           </div>
 
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              Cancelar
             </Button>
             <Button type="submit" disabled={isSubmitting || !formData.pet_id}>
-              {isSubmitting ? "Saving..." : record ? "Update" : "Create"}
+              {isSubmitting ? "Guardando..." : record ? "Actualizar" : "Crear"}
             </Button>
           </div>
         </form>

@@ -25,7 +25,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function useAuth() {
   const context = useContext(AuthContext)
   if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider")
+    throw new Error("useAuth debe utilizarse dentro de un AuthProvider.")
   }
   return context
 }
@@ -87,7 +87,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setToken(storedToken)
         setUser(parsedUser)
       } catch (error) {
-        console.error("Error parsing stored user:", error)
+        console.error("Error al analizar el usuario almacenado:", error)
         localStorage.removeItem("token")
         localStorage.removeItem("user")
       }

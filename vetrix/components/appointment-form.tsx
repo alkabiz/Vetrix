@@ -91,7 +91,7 @@ export function AppointmentForm({ appointment, owners, pets, open, onOpenChange,
       await onSubmit(appointmentData)
       onOpenChange(false)
     } catch (error) {
-      console.error("Error submitting appointment:", error)
+      console.error("Error al enviar la cita:", error)
     } finally {
       setIsSubmitting(false)
     }
@@ -104,14 +104,14 @@ export function AppointmentForm({ appointment, owners, pets, open, onOpenChange,
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>{appointment ? "Edit Appointment" : "Schedule New Appointment"}</DialogTitle>
+          <DialogTitle>{appointment ? "Editar cita" : "Programar nueva cita"}</DialogTitle>
           <DialogDescription>
-            {appointment ? "Update the appointment details below." : "Enter the appointment information below."}
+            {appointment ? "Actualice los detalles de la cita a continuación." : "Ingrese la información de la cita a continuación."}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="owner_id">Owner *</Label>
+            <Label htmlFor="owner_id">Propietario *</Label>
             <Select value={formData.owner_id} onValueChange={(value) => setFormData({ ...formData, owner_id: value })}>
               <SelectTrigger>
                 <SelectValue placeholder="Select an owner" />
@@ -127,7 +127,7 @@ export function AppointmentForm({ appointment, owners, pets, open, onOpenChange,
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="pet_id">Pet *</Label>
+            <Label htmlFor="pet_id">Mascota *</Label>
             <Select
               value={formData.pet_id}
               onValueChange={(value) => setFormData({ ...formData, pet_id: value })}
@@ -148,7 +148,7 @@ export function AppointmentForm({ appointment, owners, pets, open, onOpenChange,
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="appointment_date">Date *</Label>
+              <Label htmlFor="appointment_date">Fecha *</Label>
               <Input
                 id="appointment_date"
                 type="date"
@@ -159,7 +159,7 @@ export function AppointmentForm({ appointment, owners, pets, open, onOpenChange,
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="appointment_time">Time *</Label>
+              <Label htmlFor="appointment_time">Tiempo *</Label>
               <Input
                 id="appointment_time"
                 type="time"
@@ -171,7 +171,7 @@ export function AppointmentForm({ appointment, owners, pets, open, onOpenChange,
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="assigned_vet">Assigned Veterinarian</Label>
+            <Label htmlFor="assigned_vet">Veterinario asignado</Label>
             <Select
               value={formData.assigned_vet}
               onValueChange={(value) => setFormData({ ...formData, assigned_vet: value })}
@@ -190,7 +190,7 @@ export function AppointmentForm({ appointment, owners, pets, open, onOpenChange,
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="status">Status</Label>
+            <Label htmlFor="status">Estado</Label>
             <Select
               value={formData.status}
               onValueChange={(value) => setFormData({ ...formData, status: value as any })}
@@ -199,30 +199,30 @@ export function AppointmentForm({ appointment, owners, pets, open, onOpenChange,
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="canceled">Canceled</SelectItem>
+                <SelectItem value="pending">Pendiente</SelectItem>
+                <SelectItem value="completed">Completado</SelectItem>
+                <SelectItem value="canceled">Cancelado</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
+            <Label htmlFor="notes">Notas</Label>
             <Textarea
               id="notes"
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               rows={3}
-              placeholder="Any additional notes about the appointment..."
+              placeholder="Cualquier nota adicional sobre la cita..."
             />
           </div>
 
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              Cancelar
             </Button>
             <Button type="submit" disabled={isSubmitting || !formData.owner_id || !formData.pet_id}>
-              {isSubmitting ? "Saving..." : appointment ? "Update" : "Schedule"}
+              {isSubmitting ? "Guardando..." : appointment ? "Actualizar" : "Horario"}
             </Button>
           </div>
         </form>

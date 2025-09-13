@@ -93,10 +93,10 @@ export function PetForm({ pet, owners, open, onOpenChange, onSubmit }: PetFormPr
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="owner_id">Owner *</Label>
+            <Label htmlFor="owner_id">Propietario *</Label>
             <Select value={formData.owner_id} onValueChange={(value) => setFormData({ ...formData, owner_id: value })}>
               <SelectTrigger>
-                <SelectValue placeholder="Select an owner" />
+                <SelectValue placeholder="Seleccionar un propietario" />
               </SelectTrigger>
               <SelectContent>
                 {owners.map((owner) => (
@@ -108,7 +108,7 @@ export function PetForm({ pet, owners, open, onOpenChange, onSubmit }: PetFormPr
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="name">Pet Name *</Label>
+            <Label htmlFor="name">Nombre de mascota *</Label>
             <Input
               id="name"
               value={formData.name}
@@ -117,17 +117,17 @@ export function PetForm({ pet, owners, open, onOpenChange, onSubmit }: PetFormPr
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="species">Species *</Label>
+            <Label htmlFor="species">Especie *</Label>
             <Input
               id="species"
               value={formData.species}
               onChange={(e) => setFormData({ ...formData, species: e.target.value })}
-              placeholder="e.g., Dog, Cat, Bird"
+              placeholder="Por ejemplo, perro, gato, pájaro."
               required
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="breed">Breed</Label>
+            <Label htmlFor="breed">Raza</Label>
             <Input
               id="breed"
               value={formData.breed}
@@ -137,7 +137,7 @@ export function PetForm({ pet, owners, open, onOpenChange, onSubmit }: PetFormPr
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="sex">Sex</Label>
+              <Label htmlFor="sex">Sexo</Label>
               <Select value={formData.sex} onValueChange={(value) => setFormData({ ...formData, sex: value as any })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select sex" />
@@ -150,7 +150,7 @@ export function PetForm({ pet, owners, open, onOpenChange, onSubmit }: PetFormPr
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="age">Age (years)</Label>
+              <Label htmlFor="age">Edad (años)</Label>
               <Input
                 id="age"
                 type="number"
@@ -161,7 +161,7 @@ export function PetForm({ pet, owners, open, onOpenChange, onSubmit }: PetFormPr
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="weight">Weight (lbs)</Label>
+            <Label htmlFor="weight">Peso (libras)</Label>
             <Input
               id="weight"
               type="number"
@@ -172,21 +172,21 @@ export function PetForm({ pet, owners, open, onOpenChange, onSubmit }: PetFormPr
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
+            <Label htmlFor="notes">Notas</Label>
             <Textarea
               id="notes"
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               rows={3}
-              placeholder="Any additional notes about the pet..."
+              placeholder="Cualquier nota adicional sobre la mascota..."
             />
           </div>
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              Cancelar
             </Button>
             <Button type="submit" disabled={isSubmitting || !formData.owner_id}>
-              {isSubmitting ? "Saving..." : pet ? "Update" : "Create"}
+              {isSubmitting ? "Guardando..." : pet ? "Actualizar" : "Crear"}
             </Button>
           </div>
         </form>

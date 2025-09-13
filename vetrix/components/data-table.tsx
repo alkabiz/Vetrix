@@ -34,8 +34,8 @@ export function DataTable<T extends Record<string, any>>({
   onAdd,
   onEdit,
   onDelete,
-  searchPlaceholder = "Search...",
-  addButtonText = "Add New",
+  searchPlaceholder = "Buscar...",
+  addButtonText = "Añadir nuevo",
 }: DataTableProps<T>) {
   const [searchTerm, setSearchTerm] = useState("")
 
@@ -80,14 +80,14 @@ export function DataTable<T extends Record<string, any>>({
                 {columns.map((column) => (
                   <TableHead key={String(column.key)}>{column.label}</TableHead>
                 ))}
-                {(onEdit || onDelete) && <TableHead className="text-right">Actions</TableHead>}
+                {(onEdit || onDelete) && <TableHead className="text-right">Acciones</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredData.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={columns.length + (onEdit || onDelete ? 1 : 0)} className="text-center py-8">
-                    No data found
+                    No se encontraron datos.
                   </TableCell>
                 </TableRow>
               ) : (
@@ -105,12 +105,12 @@ export function DataTable<T extends Record<string, any>>({
                         <div className="flex justify-end gap-2">
                           {onEdit && (
                             <Button variant="outline" size="sm" onClick={() => onEdit(item)}>
-                              Edit
+                              Editar
                             </Button>
                           )}
                           {onDelete && (
                             <Button variant="destructive" size="sm" onClick={() => onDelete(item)}>
-                              Delete
+                              Eliminar
                             </Button>
                           )}
                         </div>

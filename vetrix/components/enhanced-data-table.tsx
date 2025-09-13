@@ -90,7 +90,7 @@ export function EnhancedDataTable({
           )}
           <Button variant="outline" className="gap-2 bg-transparent">
             <Download className="h-4 w-4" />
-            Export
+            Exportar
           </Button>
         </div>
       </div>
@@ -116,7 +116,7 @@ export function EnhancedDataTable({
               <SelectValue placeholder={filter.label} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All {filter.label}</SelectItem>
+              <SelectItem value="all">Todos {filter.label}</SelectItem>
               {filter.options.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
                   {option.label}
@@ -130,11 +130,11 @@ export function EnhancedDataTable({
       {/* Data table */}
       {filteredData.length === 0 ? (
         <EmptyState
-          title="No data found"
+          title="No se encontraron datos."
           description={
             searchTerm || Object.keys(activeFilters).length > 0
-              ? "Try adjusting your search or filters"
-              : `No ${title.toLowerCase()} have been added yet`
+              ? "Intenta ajustar tu búsqueda o filtros."
+              : `No ${title.toLowerCase()} aún no se han añadido`
           }
           action={onAdd ? { label: addButtonLabel, onClick: onAdd } : undefined}
           icon={searchTerm || Object.keys(activeFilters).length > 0 ? "search" : "add"}
@@ -151,7 +151,7 @@ export function EnhancedDataTable({
                         {column.label}
                       </th>
                     ))}
-                    {(onEdit || onDelete) && <th className="text-right p-4 font-medium">Actions</th>}
+                    {(onEdit || onDelete) && <th className="text-right p-4 font-medium">Acciones</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -174,13 +174,13 @@ export function EnhancedDataTable({
                               {onEdit && (
                                 <DropdownMenuItem onClick={() => onEdit(item)}>
                                   <Edit className="h-4 w-4 mr-2" />
-                                  Edit
+                                  Editar
                                 </DropdownMenuItem>
                               )}
                               {onDelete && (
                                 <DropdownMenuItem onClick={() => onDelete(item)} className="text-destructive">
                                   <Trash2 className="h-4 w-4 mr-2" />
-                                  Delete
+                                  Eliminar
                                 </DropdownMenuItem>
                               )}
                             </DropdownMenuContent>

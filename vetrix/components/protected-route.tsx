@@ -40,16 +40,16 @@ export function ProtectedRoute({ children, requiredPermission, fallback }: Prote
                   <ShieldX className="h-8 w-8 text-red-600" />
                 </div>
               </div>
-              <CardTitle className="text-xl text-gray-900">Access Denied</CardTitle>
-              <CardDescription>You don't have permission to access this page.</CardDescription>
+              <CardTitle className="text-xl text-gray-900">Acceso denegado</CardTitle>
+              <CardDescription>No tienes permiso para acceder a esta página.</CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-gray-600 mb-4">
-                Required permission: <span className="font-mono">{requiredPermission}</span>
+                Permiso requerido: <span className="font-mono">{requiredPermission}</span>
               </p>
               <Button onClick={() => router.back()} variant="outline">
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Go Back
+                Volver atrás
               </Button>
             </CardContent>
           </Card>
