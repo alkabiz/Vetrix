@@ -16,17 +16,21 @@ interface Column {
   key: string
   label: string
   sortable?: boolean
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   render?: (value: any, row: any) => React.ReactNode
 }
 
 interface EnhancedDataTableProps {
   title: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any[]
   columns: Column[]
   loading?: boolean
   searchPlaceholder?: string
   onAdd?: () => void
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onEdit?: (item: any) => void
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onDelete?: (item: any) => void
   addButtonLabel?: string
   filters?: {

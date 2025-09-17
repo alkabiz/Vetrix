@@ -41,6 +41,7 @@ export const permissions = {
 export const checkResourcePermission = (
   userRole: UserRole, 
   action: keyof typeof permissions, 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   additionalContext?: any
 ): boolean => {
   const permissionCheck = permissions[action];

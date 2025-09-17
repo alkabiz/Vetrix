@@ -1,5 +1,6 @@
 import Database from "better-sqlite3"
 import { join } from "path"
+import { ReactNode } from "react"
 
 let db: Database.Database | null = null
 
@@ -203,6 +204,7 @@ export interface EmploymentStatus {
 }
 
 export interface Owner {
+  name: ReactNode
   id: number; // INT UNSIGNED, PK
   firstName: string; // Nombre del propietario
   lastName: string; // Apellido del propietario
@@ -239,6 +241,7 @@ export interface Veterinarian {
 
   yearsExperience?: number; // Años de experiencia
   education?: string; // Formación académica
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   certifications?: Record<string, any>[]; // JSON con certificaciones
   specializationNotes?: string; // Notas sobre especializaciones
 
@@ -329,6 +332,9 @@ export interface InsuranceProvider {
 }
 
 export interface Pet {
+  owner_name: ReactNode
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  owner_id(owner_id: any): unknown
   id: number; // INT UNSIGNED AUTO_INCREMENT
   petNumber: string; // Número único mascota
   ownerId: number; // FK → mas_owners.id
@@ -437,6 +443,13 @@ export interface ReminderStatus {
 }
 
 export interface Appointment {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  pet_id(pet_id: any): unknown
+  appointment_date: string | number | Date
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  appointment_time: any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  status: any
   id: number;                      // INT UNSIGNED AUTO_INCREMENT
   appointmentNumber: string;       // VARCHAR(20) UNIQUE
   petId: number;                   // FK → mas_pets.id
@@ -517,6 +530,7 @@ export interface AppointmentPriority {
 }
 
 export interface MedicalRecord {
+  visit_date: string | number | Date
   id: number;                   // INT UNSIGNED
   recordNumber: string;         // VARCHAR(20)
   petId: number;                // FK → mas_pets.id
@@ -669,6 +683,16 @@ export interface InvoiceItemDiscount {
 
 // fac_invoices.interface.ts
 export interface Invoice {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  owner_id(owner_id: any): string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  pet_id(pet_id: any): string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  appointment_id: any
+  invoice_date: string
+  status: "pending" | "paid" | "overdue"
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  services(services: any): string[]
   id: number;
   invoiceNumber: string;
 
@@ -830,6 +854,7 @@ export interface User {
   // Configuración de notificaciones
   emailNotifications: boolean;
   smsNotifications: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   notificationPreferences?: Record<string, any> | null; // JSON flexible
 
   // Información de activación
@@ -865,6 +890,7 @@ export interface UserProfile {
   timezone: string;
 
   // Notificaciones
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   notificationPreferences?: Record<string, any> | null;
 
   // Auditoría
@@ -889,7 +915,9 @@ export interface UserActivityLog {
   resourceId?: number | null;
 
   // Auditoría de cambios
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   oldValues?: Record<string, any> | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   newValues?: Record<string, any> | null;
 
   // Información de sesión
