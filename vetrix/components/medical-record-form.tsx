@@ -133,7 +133,7 @@ export function MedicalRecordForm({
               <SelectContent>
                 {pets.map((pet) => (
                   <SelectItem key={pet.id} value={String(pet.id)}>
-                    {pet.name} ({pet.species}) - {pet.owner_name}
+                    {pet.name} ({pet.speciesId}) - {pet.owner_name}
                   </SelectItem>
                 ))}
               </SelectContent>

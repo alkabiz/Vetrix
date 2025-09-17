@@ -218,7 +218,7 @@ export function InvoiceForm({ invoice, owners, pets, appointments, open, onOpenC
                 <SelectContent>
                   {filteredPets.map((pet) => (
                     <SelectItem key={pet.id} value={String(pet.id)}>
-                      {pet.name} ({pet.species})
+                      {pet.name} ({pet.speciesId})
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -262,6 +262,7 @@ export function InvoiceForm({ invoice, owners, pets, appointments, open, onOpenC
               <Label htmlFor="status">Estado</Label>
               <Select
                 value={formData.status}
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 onValueChange={(value) => setFormData({ ...formData, status: value as any })}
               >
                 <SelectTrigger>

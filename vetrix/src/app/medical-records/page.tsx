@@ -197,7 +197,7 @@ export default function MedicalRecordsPage() {
       const updatedRecord = {
         ...selectedRecord,
         ...recordData,
-        pet_name: pets.find((p) => p.id === recordData.pet_id)?.name || "",
+        pet_name: pets.find((p) => p.id === recordData.petId)?.name || "",
         updated_at: new Date().toISOString(),
       }
       setRecords(records.map((r) => (r.id === selectedRecord.id ? updatedRecord : r)))
@@ -210,7 +210,7 @@ export default function MedicalRecordsPage() {
       const newRecord: MedicalRecord = {
         ...recordData,
         id: Math.max(...records.map((r) => r.id)) + 1,
-        pet_name: pets.find((p) => p.id === recordData.pet_id)?.name || "",
+        pet_name: pets.find((p) => p.id === recordData.petId)?.name || "",
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       }
@@ -233,7 +233,7 @@ export default function MedicalRecordsPage() {
 
   const filteredRecords = records.filter((record) => {
     if (petFilter === "all") return true
-    return String(record.pet_id) === petFilter
+    return String(record.petId) === petFilter
   })
 
   const columns = [
@@ -294,7 +294,7 @@ export default function MedicalRecordsPage() {
       const now = new Date()
       return recordDate.getMonth() === now.getMonth() && recordDate.getFullYear() === now.getFullYear()
     }).length,
-    uniquePets: new Set(records.map((r) => r.pet_id)).size,
+    uniquePets: new Set(records.map((r) => r.petId)).size,
   }
 
   const canModifyRecords = user && ["admin", "vet"].includes(user.role)
@@ -374,7 +374,7 @@ export default function MedicalRecordsPage() {
                   <SelectItem value="all">Todas las mascotas</SelectItem>
                   {pets.map((pet) => (
                     <SelectItem key={pet.id} value={String(pet.id)}>
-                      {pet.name} ({pet.species}) - {pet.owner_name}
+                      {pet.name} ({pet.speciesId}) - {pet.owner_name}
                     </SelectItem>
                   ))}
                 </SelectContent>
