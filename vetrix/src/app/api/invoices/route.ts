@@ -1,8 +1,13 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getDatabase, type Invoice } from "@/lib/database"
+import { requireAnyRole } from "@/lib/middleware"
+import { invoiceSchema, validateRequest } from "@/lib/validation"
+import { handleApiError, logRequest } from "@/lib/error-handler"
 
-export async function GET() {
+export const GET = requireAnyRole(async (request: NextRequest) => {
   try {
+    logRequest(request, "/api/invoices")
+
     const db = getDatabase()
     const invoices = db
       .prepare(`
@@ -16,14 +21,20 @@ export async function GET() {
 
     return NextResponse.json(invoices)
   } catch (error) {
-    console.error("Error al recuperar las facturas:", error)
-    return NextResponse.json({ error: "No se pudieron recuperar las facturas" }, { status: 500 })
+    return handleApiError(error)
   }
-}
+})
 
-export async function POST(request: NextRequest) {
+export const POST = requireAnyRole(async (request: NextRequest) => {
   try {
-    const body = (await request.json()) as Omit<Invoice, "id" | "created_at" | "updated_at">
+    logRequest(request, "/api/invoices")
+
+    const validation = await validateRequest(invoiceSchema)(request)
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error }, { status: 400 })
+    }
+
+    const body = validation.data
     const db = getDatabase()
 
     const stmt = db.prepare(`
@@ -54,7 +65,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(newInvoice, { status: 201 })
   } catch (error) {
-    console.error("Error al crear la factura:", error)
-    return NextResponse.json({ error: "No se pudo crear la factura" }, { status: 500 })
+    return handleApiError(error)
   }
-}
+})

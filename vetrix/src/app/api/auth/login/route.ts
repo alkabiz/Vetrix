@@ -84,6 +84,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Generar token JWT
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password_hash, ...userWithoutPassword } = user;
     const token = generateToken(userWithoutPassword);
 

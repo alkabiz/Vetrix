@@ -1,8 +1,18 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getDatabase, type Invoice } from "@/lib/database"
+import { requireAnyRole, requireVetOrAdmin } from "@/lib/middleware"
+import { invoiceSchema, validateRequest, validateIdParam } from "@/lib/validation"
+import { handleApiError, logRequest, NotFoundError } from "@/lib/error-handler"
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export const GET = requireAnyRole(async (request: NextRequest, context, { params }: { params: { id: string } }) => {
   try {
+    logRequest(request, `/api/invoices/${params.id}`)
+
+    const idValidation = validateIdParam(params.id)
+    if (!idValidation.success) {
+      return NextResponse.json({ error: idValidation.error }, { status: 400 })
+    }
+
     const db = getDatabase()
     const invoice = db
       .prepare(`
@@ -12,22 +22,33 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       JOIN pets p ON i.pet_id = p.id
       WHERE i.id = ?
     `)
-      .get(params.id) as Invoice
+      .get(idValidation.id) as Invoice
 
     if (!invoice) {
-      return NextResponse.json({ error: "Factura no encontrada" }, { status: 404 })
+      throw new NotFoundError("Invoice not found")
     }
 
     return NextResponse.json(invoice)
   } catch (error) {
-    console.error("Error al obtener la factura:", error)
-    return NextResponse.json({ error: "No se pudo recuperar la factura" }, { status: 500 })
+    return handleApiError(error)
   }
-}
+})
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export const PUT = requireVetOrAdmin(async (request: NextRequest, context, { params }: { params: { id: string } }) => {
   try {
-    const body = (await request.json()) as Partial<Invoice>
+    logRequest(request, `/api/invoices/${params.id}`)
+
+    const idValidation = validateIdParam(params.id)
+    if (!idValidation.success) {
+      return NextResponse.json({ error: idValidation.error }, { status: 400 })
+    }
+
+    const validation = await validateRequest(invoiceSchema.partial())(request)
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error }, { status: 400 })
+    }
+
+    const body = validation.data
     const db = getDatabase()
 
     const stmt = db.prepare(`
@@ -45,11 +66,11 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       body.total_amount,
       body.status,
       body.notes,
-      params.id,
+      idValidation.id,
     )
 
     if (result.changes === 0) {
-      return NextResponse.json({ error: "Factura no encontrada" }, { status: 404 })
+      throw new NotFoundError("Invoice not found")
     }
 
     const updatedInvoice = db
@@ -60,27 +81,34 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       JOIN pets p ON i.pet_id = p.id
       WHERE i.id = ?
     `)
-      .get(params.id) as Invoice
+      .get(idValidation.id) as Invoice
 
     return NextResponse.json(updatedInvoice)
   } catch (error) {
-    console.error("Error al actualizar la factura:", error)
-    return NextResponse.json({ error: "No se pudo actualizar la factura" }, { status: 500 })
+    return handleApiError(error)
   }
-}
+})
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
-  try {
-    const db = getDatabase()
-    const result = db.prepare("DELETE FROM invoices WHERE id = ?").run(params.id)
+export const DELETE = requireVetOrAdmin(
+  async (request: NextRequest, context, { params }: { params: { id: string } }) => {
+    try {
+      logRequest(request, `/api/invoices/${params.id}`)
 
-    if (result.changes === 0) {
-      return NextResponse.json({ error: "Factura no encontrada" }, { status: 404 })
+      const idValidation = validateIdParam(params.id)
+      if (!idValidation.success) {
+        return NextResponse.json({ error: idValidation.error }, { status: 400 })
+      }
+
+      const db = getDatabase()
+      const result = db.prepare("DELETE FROM invoices WHERE id = ?").run(idValidation.id)
+
+      if (result.changes === 0) {
+        throw new NotFoundError("Invoice not found")
+      }
+
+      return NextResponse.json({ message: "Invoice deleted successfully" })
+    } catch (error) {
+      return handleApiError(error)
     }
-
-    return NextResponse.json({ message: "Factura eliminada correctamente" })
-  } catch (error) {
-    console.error("Error al eliminar la factura:", error)
-    return NextResponse.json({ error: "No se pudo eliminar la factura" }, { status: 500 })
-  }
-}
+  },
+)

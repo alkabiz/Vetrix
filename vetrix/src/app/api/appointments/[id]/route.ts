@@ -1,8 +1,18 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getDatabase, type Appointment } from "@/lib/database"
+import { requireAnyRole, requireVetOrAdmin } from "@/lib/middleware"
+import { appointmentSchema, validateRequest, validateIdParam } from "@/lib/validation"
+import { handleApiError, logRequest, NotFoundError } from "@/lib/error-handler"
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export const GET = requireAnyRole(async (request: NextRequest, context, { params }: { params: { id: string } }) => {
   try {
+    logRequest(request, `/api/appointments/${params.id}`)
+
+    const idValidation = validateIdParam(params.id)
+    if (!idValidation.success) {
+      return NextResponse.json({ error: idValidation.error }, { status: 400 })
+    }
+
     const db = getDatabase()
     const appointment = db
       .prepare(`
@@ -12,22 +22,33 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       JOIN owners o ON a.owner_id = o.id
       WHERE a.id = ?
     `)
-      .get(params.id) as Appointment
+      .get(idValidation.id) as Appointment
 
     if (!appointment) {
-      return NextResponse.json({ error: "Appointment not found" }, { status: 404 })
+      throw new NotFoundError("Appointment not found")
     }
 
     return NextResponse.json(appointment)
   } catch (error) {
-    console.error("Error fetching appointment:", error)
-    return NextResponse.json({ error: "Failed to fetch appointment" }, { status: 500 })
+    return handleApiError(error)
   }
-}
+})
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export const PUT = requireVetOrAdmin(async (request: NextRequest, context, { params }: { params: { id: string } }) => {
   try {
-    const body = (await request.json()) as Partial<Appointment>
+    logRequest(request, `/api/appointments/${params.id}`)
+
+    const idValidation = validateIdParam(params.id)
+    if (!idValidation.success) {
+      return NextResponse.json({ error: idValidation.error }, { status: 400 })
+    }
+
+    const validation = await validateRequest(appointmentSchema.partial())(request)
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error }, { status: 400 })
+    }
+
+    const body = validation.data
     const db = getDatabase()
 
     const stmt = db.prepare(`
@@ -44,11 +65,11 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       body.assigned_vet,
       body.status,
       body.notes,
-      params.id,
+      idValidation.id,
     )
 
     if (result.changes === 0) {
-      return NextResponse.json({ error: "Appointment not found" }, { status: 404 })
+      throw new NotFoundError("Appointment not found")
     }
 
     const updatedAppointment = db
@@ -59,27 +80,34 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       JOIN owners o ON a.owner_id = o.id
       WHERE a.id = ?
     `)
-      .get(params.id) as Appointment
+      .get(idValidation.id) as Appointment
 
     return NextResponse.json(updatedAppointment)
   } catch (error) {
-    console.error("Error updating appointment:", error)
-    return NextResponse.json({ error: "Failed to update appointment" }, { status: 500 })
+    return handleApiError(error)
   }
-}
+})
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
-  try {
-    const db = getDatabase()
-    const result = db.prepare("DELETE FROM appointments WHERE id = ?").run(params.id)
+export const DELETE = requireVetOrAdmin(
+  async (request: NextRequest, context, { params }: { params: { id: string } }) => {
+    try {
+      logRequest(request, `/api/appointments/${params.id}`)
 
-    if (result.changes === 0) {
-      return NextResponse.json({ error: "Appointment not found" }, { status: 404 })
+      const idValidation = validateIdParam(params.id)
+      if (!idValidation.success) {
+        return NextResponse.json({ error: idValidation.error }, { status: 400 })
+      }
+
+      const db = getDatabase()
+      const result = db.prepare("DELETE FROM appointments WHERE id = ?").run(idValidation.id)
+
+      if (result.changes === 0) {
+        throw new NotFoundError("Appointment not found")
+      }
+
+      return NextResponse.json({ message: "Appointment deleted successfully" })
+    } catch (error) {
+      return handleApiError(error)
     }
-
-    return NextResponse.json({ message: "Appointment deleted successfully" })
-  } catch (error) {
-    console.error("Error deleting appointment:", error)
-    return NextResponse.json({ error: "Failed to delete appointment" }, { status: 500 })
-  }
-}
+  },
+)

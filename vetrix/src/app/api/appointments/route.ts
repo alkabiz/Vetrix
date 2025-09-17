@@ -1,8 +1,13 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getDatabase, type Appointment } from "@/lib/database"
+import { requireAnyRole } from "@/lib/middleware"
+import { appointmentSchema, validateRequest } from "@/lib/validation"
+import { handleApiError, logRequest } from "@/lib/error-handler"
 
-export async function GET() {
+export const GET = requireAnyRole(async (request: NextRequest) => {
   try {
+    logRequest(request, "/api/appointments")
+
     const db = getDatabase()
     const appointments = db
       .prepare(`
@@ -16,14 +21,20 @@ export async function GET() {
 
     return NextResponse.json(appointments)
   } catch (error) {
-    console.error("Error fetching appointments:", error)
-    return NextResponse.json({ error: "Failed to fetch appointments" }, { status: 500 })
+    return handleApiError(error)
   }
-}
+})
 
-export async function POST(request: NextRequest) {
+export const POST = requireAnyRole(async (request: NextRequest) => {
   try {
-    const body = (await request.json()) as Omit<Appointment, "id" | "created_at" | "updated_at">
+    logRequest(request, "/api/appointments")
+
+    const validation = await validateRequest(appointmentSchema)(request)
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error }, { status: 400 })
+    }
+
+    const body = validation.data
     const db = getDatabase()
 
     const stmt = db.prepare(`
@@ -53,7 +64,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(newAppointment, { status: 201 })
   } catch (error) {
-    console.error("Error creating appointment:", error)
-    return NextResponse.json({ error: "Failed to create appointment" }, { status: 500 })
+    return handleApiError(error)
   }
-}
+})

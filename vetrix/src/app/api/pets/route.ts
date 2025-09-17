@@ -1,8 +1,13 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getDatabase, type Pet } from "@/lib/database"
+import { requireAnyRole } from "@/lib/middleware"
+import { petSchema, validateRequest } from "@/lib/validation"
+import { handleApiError, logRequest } from "@/lib/error-handler"
 
-export async function GET() {
+export const GET = requireAnyRole(async (request: NextRequest) => {
   try {
+    logRequest(request, "/api/pets")
+
     const db = getDatabase()
     const pets = db
       .prepare(`
@@ -15,14 +20,20 @@ export async function GET() {
 
     return NextResponse.json(pets)
   } catch (error) {
-    console.error("Error al obtener mascotas:", error)
-    return NextResponse.json({ error: "No se pudieron recuperar las mascotas" }, { status: 500 })
+    return handleApiError(error)
   }
-}
+})
 
-export async function POST(request: NextRequest) {
+export const POST = requireAnyRole(async (request: NextRequest) => {
   try {
-    const body = (await request.json()) as Omit<Pet, "id" | "created_at" | "updated_at">
+    logRequest(request, "/api/pets")
+
+    const validation = await validateRequest(petSchema)(request)
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error }, { status: 400 })
+    }
+
+    const body = validation.data
     const db = getDatabase()
 
     const stmt = db.prepare(`
@@ -52,7 +63,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(newPet, { status: 201 })
   } catch (error) {
-    console.error("Error al crear mascota:", error)
-    return NextResponse.json({ error: "No se pudo crear la mascota" }, { status: 500 })
+    return handleApiError(error)
   }
-}
+})

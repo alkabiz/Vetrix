@@ -1,8 +1,18 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getDatabase, type Pet } from "@/lib/database"
+import { requireAnyRole, requireVetOrAdmin } from "@/lib/middleware"
+import { petSchema, validateRequest, validateIdParam } from "@/lib/validation"
+import { handleApiError, logRequest, NotFoundError } from "@/lib/error-handler"
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export const GET = requireAnyRole(async (request: NextRequest, context, { params }: { params: { id: string } }) => {
   try {
+    logRequest(request, `/api/pets/${params.id}`)
+
+    const idValidation = validateIdParam(params.id)
+    if (!idValidation.success) {
+      return NextResponse.json({ error: idValidation.error }, { status: 400 })
+    }
+
     const db = getDatabase()
     const pet = db
       .prepare(`
@@ -11,22 +21,33 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       JOIN owners o ON p.owner_id = o.id 
       WHERE p.id = ?
     `)
-      .get(params.id) as Pet
+      .get(idValidation.id) as Pet
 
     if (!pet) {
-      return NextResponse.json({ error: "No se encontró mascota" }, { status: 404 })
+      throw new NotFoundError("Pet not found")
     }
 
     return NextResponse.json(pet)
   } catch (error) {
-    console.error("Error al obtener la mascota:", error)
-    return NextResponse.json({ error: "No se pudo recuperar la mascota" }, { status: 500 })
+    return handleApiError(error)
   }
-}
+})
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export const PUT = requireVetOrAdmin(async (request: NextRequest, context, { params }: { params: { id: string } }) => {
   try {
-    const body = (await request.json()) as Partial<Pet>
+    logRequest(request, `/api/pets/${params.id}`)
+
+    const idValidation = validateIdParam(params.id)
+    if (!idValidation.success) {
+      return NextResponse.json({ error: idValidation.error }, { status: 400 })
+    }
+
+    const validation = await validateRequest(petSchema.partial())(request)
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error }, { status: 400 })
+    }
+
+    const body = validation.data
     const db = getDatabase()
 
     const stmt = db.prepare(`
@@ -44,11 +65,11 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       body.age,
       body.weight,
       body.notes,
-      params.id,
+      idValidation.id,
     )
 
     if (result.changes === 0) {
-      return NextResponse.json({ error: "No se encontró mascota" }, { status: 404 })
+      throw new NotFoundError("Pet not found")
     }
 
     const updatedPet = db
@@ -58,27 +79,34 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       JOIN owners o ON p.owner_id = o.id 
       WHERE p.id = ?
     `)
-      .get(params.id) as Pet
+      .get(idValidation.id) as Pet
 
     return NextResponse.json(updatedPet)
   } catch (error) {
-    console.error("Error al actualizar la mascota:", error)
-    return NextResponse.json({ error: "No se pudo actualizar la mascota" }, { status: 500 })
+    return handleApiError(error)
   }
-}
+})
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
-  try {
-    const db = getDatabase()
-    const result = db.prepare("DELETE FROM pets WHERE id = ?").run(params.id)
+export const DELETE = requireVetOrAdmin(
+  async (request: NextRequest, context, { params }: { params: { id: string } }) => {
+    try {
+      logRequest(request, `/api/pets/${params.id}`)
 
-    if (result.changes === 0) {
-      return NextResponse.json({ error: "No se encontró mascota" }, { status: 404 })
+      const idValidation = validateIdParam(params.id)
+      if (!idValidation.success) {
+        return NextResponse.json({ error: idValidation.error }, { status: 400 })
+      }
+
+      const db = getDatabase()
+      const result = db.prepare("DELETE FROM pets WHERE id = ?").run(idValidation.id)
+
+      if (result.changes === 0) {
+        throw new NotFoundError("Pet not found")
+      }
+
+      return NextResponse.json({ message: "Pet deleted successfully" })
+    } catch (error) {
+      return handleApiError(error)
     }
-
-    return NextResponse.json({ message: "Mascota eliminada correctamente" })
-  } catch (error) {
-    console.error("Error al eliminar mascota:", error)
-    return NextResponse.json({ error: "No se pudo eliminar la mascota" }, { status: 500 })
-  }
-}
+  },
+)

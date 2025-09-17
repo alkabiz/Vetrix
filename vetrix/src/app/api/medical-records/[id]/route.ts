@@ -1,32 +1,55 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getDatabase, type MedicalRecord } from "@/lib/database"
+import { requireMedicalAccess, requireVetOrAdmin } from "@/lib/middleware"
+import { medicalRecordSchema, validateRequest, validateIdParam } from "@/lib/validation"
+import { handleApiError, logRequest, NotFoundError } from "@/lib/error-handler"
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
-  try {
-    const db = getDatabase()
-    const record = db
-      .prepare(`
+export const GET = requireMedicalAccess(
+  async (request: NextRequest, context, { params }: { params: { id: string } }) => {
+    try {
+      logRequest(request, `/api/medical-records/${params.id}`)
+
+      const idValidation = validateIdParam(params.id)
+      if (!idValidation.success) {
+        return NextResponse.json({ error: idValidation.error }, { status: 400 })
+      }
+
+      const db = getDatabase()
+      const record = db
+        .prepare(`
       SELECT mr.*, p.name as pet_name
       FROM medical_records mr
       JOIN pets p ON mr.pet_id = p.id
       WHERE mr.id = ?
     `)
-      .get(params.id) as MedicalRecord
+        .get(idValidation.id) as MedicalRecord
 
-    if (!record) {
-      return NextResponse.json({ error: "No se encontró el expediente médico" }, { status: 404 })
+      if (!record) {
+        throw new NotFoundError("Medical record not found")
+      }
+
+      return NextResponse.json(record)
+    } catch (error) {
+      return handleApiError(error)
+    }
+  },
+)
+
+export const PUT = requireVetOrAdmin(async (request: NextRequest, context, { params }: { params: { id: string } }) => {
+  try {
+    logRequest(request, `/api/medical-records/${params.id}`)
+
+    const idValidation = validateIdParam(params.id)
+    if (!idValidation.success) {
+      return NextResponse.json({ error: idValidation.error }, { status: 400 })
     }
 
-    return NextResponse.json(record)
-  } catch (error) {
-    console.error("Error al obtener el historial médico:", error)
-    return NextResponse.json({ error: "No se pudo obtener el historial médico" }, { status: 500 })
-  }
-}
+    const validation = await validateRequest(medicalRecordSchema.partial())(request)
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error }, { status: 400 })
+    }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
-  try {
-    const body = (await request.json()) as Partial<MedicalRecord>
+    const body = validation.data
     const db = getDatabase()
 
     const stmt = db.prepare(`
@@ -43,11 +66,11 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       body.diagnosis,
       body.treatment,
       body.notes,
-      params.id,
+      idValidation.id,
     )
 
     if (result.changes === 0) {
-      return NextResponse.json({ error: "No se encontró el expediente médico" }, { status: 404 })
+      throw new NotFoundError("Medical record not found")
     }
 
     const updatedRecord = db
@@ -57,27 +80,34 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       JOIN pets p ON mr.pet_id = p.id
       WHERE mr.id = ?
     `)
-      .get(params.id) as MedicalRecord
+      .get(idValidation.id) as MedicalRecord
 
     return NextResponse.json(updatedRecord)
   } catch (error) {
-    console.error("Error al actualizar el expediente médico:", error)
-    return NextResponse.json({ error: "No se pudo actualizar el expediente médico" }, { status: 500 })
+    return handleApiError(error)
   }
-}
+})
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
-  try {
-    const db = getDatabase()
-    const result = db.prepare("DELETE FROM medical_records WHERE id = ?").run(params.id)
+export const DELETE = requireVetOrAdmin(
+  async (request: NextRequest, context, { params }: { params: { id: string } }) => {
+    try {
+      logRequest(request, `/api/medical-records/${params.id}`)
 
-    if (result.changes === 0) {
-      return NextResponse.json({ error: "No se encontró el expediente médico" }, { status: 404 })
+      const idValidation = validateIdParam(params.id)
+      if (!idValidation.success) {
+        return NextResponse.json({ error: idValidation.error }, { status: 400 })
+      }
+
+      const db = getDatabase()
+      const result = db.prepare("DELETE FROM medical_records WHERE id = ?").run(idValidation.id)
+
+      if (result.changes === 0) {
+        throw new NotFoundError("Medical record not found")
+      }
+
+      return NextResponse.json({ message: "Medical record deleted successfully" })
+    } catch (error) {
+      return handleApiError(error)
     }
-
-    return NextResponse.json({ message: "Expediente médico eliminado correctamente" })
-  } catch (error) {
-    console.error("Error al eliminar el expediente médico:", error)
-    return NextResponse.json({ error: "No se pudo eliminar el expediente médico" }, { status: 500 })
-  }
-}
+  },
+)
