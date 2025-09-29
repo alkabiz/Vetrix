@@ -1,131 +1,463 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import type { Appointment, Owner, Pet, Veterinarian, AppointmentStatus, AppointmentType, AppointmentPriority } from "@/lib/database"
+import { Checkbox } from "@/components/ui/checkbox"
+import { useToast } from "@/hooks/use-toast"
 
-interface AppointmentFormProps {
-  appointment?: Appointment | null
-  owners: Owner[]
-  pets: Pet[]
-  veterinarians: Veterinarian[]
-  statusOptions: AppointmentStatus[]
-  typeOptions: AppointmentType[]
-  priorityOptions: AppointmentPriority[]
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onSubmit: (appointment: Omit<Appointment, "id" | "createdAt" | "updatedAt">) => Promise<void>
+import type {
+  AppointmentFormProps,
+  AppointmentFormData,
+  AppointmentFormErrors,
+  BasicInformationSectionProps,
+  SchedulingSectionProps,
+  AppointmentDetailsSectionProps,
+  FollowUpSectionProps,
+  NotesSectionProps
+} from "../lib/AppointmentForm.types"
+import {
+  DEFAULT_APPOINTMENT_FORM_VALUES,
+  DURATION_OPTIONS,
+  APPOINTMENT_FORM_CONFIG
+} from "../lib/AppointmentForm.types"
+
+// Sub-components for better organization
+const BasicInformationSection = ({
+  formData,
+  errors,
+  owners,
+  //pets,
+  veterinarians,
+  filteredPets,
+  onFieldChange
+}: BasicInformationSectionProps) => (
+  <Card>
+    <CardHeader>
+      <CardTitle className="text-lg">Basic Information</CardTitle>
+    </CardHeader>
+    <CardContent className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="appointmentNumber">Appointment Number *</Label>
+          <Input
+            id="appointmentNumber"
+            value={formData.appointmentNumber}
+            onChange={(e) => onFieldChange("appointmentNumber", e.target.value)}
+            required
+            className={errors.appointmentNumber ? "border-destructive" : ""}
+          />
+          {errors.appointmentNumber && (
+            <p className="text-destructive text-sm">{errors.appointmentNumber}</p>
+          )}
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="ownerId">Owner *</Label>
+          <Select
+            value={String(formData.ownerId)}
+            onValueChange={(value) => onFieldChange("ownerId", value === "" ? "" : Number(value))}
+          >
+            <SelectTrigger className={errors.ownerId ? "border-destructive" : ""}>
+              <SelectValue placeholder="Select an owner" />
+            </SelectTrigger>
+            <SelectContent>
+              {owners.map((owner) => (
+                <SelectItem key={owner.id} value={String(owner.id)}>
+                  {owner.firstName} {owner.lastName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {errors.ownerId && <p className="text-destructive text-sm">{errors.ownerId}</p>}
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="petId">Pet *</Label>
+          <Select
+            value={String(formData.petId)}
+            onValueChange={(value) => onFieldChange("petId", value === "" ? "" : Number(value))}
+            disabled={!formData.ownerId}
+          >
+            <SelectTrigger className={errors.petId ? "border-destructive" : ""}>
+              <SelectValue placeholder={formData.ownerId ? "Select a pet" : "Select an owner first"} />
+            </SelectTrigger>
+            <SelectContent>
+              {filteredPets.map((pet) => (
+                <SelectItem key={pet.id} value={String(pet.id)}>
+                  {pet.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {errors.petId && <p className="text-destructive text-sm">{errors.petId}</p>}
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="veterinarianId">Assigned Veterinarian</Label>
+          <Select
+            value={String(formData.veterinarianId)}
+            onValueChange={(value) => onFieldChange("veterinarianId", value === "" ? "" : Number(value))}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select a veterinarian" />
+            </SelectTrigger>
+            <SelectContent>
+              {veterinarians.map((vet) => (
+                <SelectItem key={vet.id} value={String(vet.id)}>
+                  Dr. {vet.firstName} {vet.lastName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+    </CardContent>
+  </Card>
+)
+
+const SchedulingSection = ({
+  formData,
+  errors,
+  statusOptions,
+  typeOptions,
+  priorityOptions,
+  onFieldChange
+}: SchedulingSectionProps) => {
+  const now = new Date().toISOString().slice(0, 16)
+  
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg">Scheduling</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="appointmentDatetime">Date & Time *</Label>
+            <Input
+              id="appointmentDatetime"
+              type="datetime-local"
+              min={APPOINTMENT_FORM_CONFIG.allowPastAppointments ? undefined : now}
+              value={formData.appointmentDatetime}
+              onChange={(e) => onFieldChange("appointmentDatetime", e.target.value)}
+              className={errors.appointmentDatetime ? "border-destructive" : ""}
+              required
+            />
+            {errors.appointmentDatetime && (
+              <p className="text-destructive text-sm">{errors.appointmentDatetime}</p>
+            )}
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="durationMinutes">Duration (minutes) *</Label>
+            <Select
+              value={String(formData.durationMinutes)}
+              onValueChange={(value) => onFieldChange("durationMinutes", Number(value))}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {DURATION_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={String(option.value)}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-3 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="statusId">Status</Label>
+            <Select
+              value={String(formData.statusId)}
+              onValueChange={(value) => onFieldChange("statusId", Number(value))}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {statusOptions.map((status) => (
+                  <SelectItem key={status.id} value={String(status.id)}>
+                    {status.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="typeId">Type</Label>
+            <Select
+              value={String(formData.typeId)}
+              onValueChange={(value) => onFieldChange("typeId", Number(value))}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {typeOptions.map((type) => (
+                  <SelectItem key={type.id} value={String(type.id)}>
+                    {type.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="priorityId">Priority</Label>
+            <Select
+              value={String(formData.priorityId)}
+              onValueChange={(value) => onFieldChange("priorityId", Number(value))}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {priorityOptions.map((priority) => (
+                  <SelectItem key={priority.id} value={String(priority.id)}>
+                    {priority.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
 }
 
-interface FormData {
-  appointmentNumber: string
-  petId: number | ""
-  ownerId: number | ""
-  veterinarianId: number | ""
-  appointmentDatetime: string
-  durationMinutes: number
-  statusId: number
-  typeId: number
-  priorityId: number
-  reason: string
-  isFollowUp: boolean
-  parentAppointmentId: number | ""
-  petConditionOnArrival: string
-  reminderSent: boolean
-  confirmationRequired: boolean
-  isConfirmed: boolean
-  followUpRequired: boolean
-  followUpDate: string
-  followUpReason: string
-  estimatedCost: number | ""
-  actualCost: number | ""
-  notes: string
-  internalNotes: string
-}
+const AppointmentDetailsSection = ({
+  formData,
+  errors,
+  onFieldChange
+}: AppointmentDetailsSectionProps) => (
+  <Card>
+    <CardHeader>
+      <CardTitle className="text-lg">Appointment Details</CardTitle>
+    </CardHeader>
+    <CardContent className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="reason">Reason for Visit *</Label>
+        <Textarea
+          id="reason"
+          value={formData.reason}
+          onChange={(e) => onFieldChange("reason", e.target.value)}
+          rows={2}
+          placeholder="Describe the reason for this appointment..."
+          className={errors.reason ? "border-destructive" : ""}
+          required
+        />
+        {errors.reason && <p className="text-destructive text-sm">{errors.reason}</p>}
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="petConditionOnArrival">Pet Condition on Arrival</Label>
+        <Textarea
+          id="petConditionOnArrival"
+          value={formData.petConditionOnArrival}
+          onChange={(e) => onFieldChange("petConditionOnArrival", e.target.value)}
+          rows={2}
+          placeholder="Describe the pet's condition when they arrive..."
+        />
+      </div>
+      
+      {APPOINTMENT_FORM_CONFIG.enableCostTracking && (
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="estimatedCost">Estimated Cost</Label>
+            <Input
+              id="estimatedCost"
+              type="number"
+              min="0"
+              step="0.01"
+              value={formData.estimatedCost}
+              onChange={(e) => onFieldChange("estimatedCost", e.target.value === "" ? "" : Number(e.target.value))}
+              placeholder="0.00"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="actualCost">Actual Cost</Label>
+            <Input
+              id="actualCost"
+              type="number"
+              min="0"
+              step="0.01"
+              value={formData.actualCost}
+              onChange={(e) => onFieldChange("actualCost", e.target.value === "" ? "" : Number(e.target.value))}
+              placeholder="0.00"
+            />
+          </div>
+        </div>
+      )}
+    </CardContent>
+  </Card>
+)
 
-export function AppointmentForm({ 
-  appointment, 
-  owners, 
-  pets, 
+const FollowUpSection = ({
+  formData,
+  onFieldChange
+}: FollowUpSectionProps) => (
+  <Card>
+    <CardHeader>
+      <CardTitle className="text-lg">Follow-up & Reminders</CardTitle>
+    </CardHeader>
+    <CardContent className="space-y-4">
+      <div className="space-y-3">
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="isFollowUp"
+            checked={formData.isFollowUp}
+            onCheckedChange={(checked) => onFieldChange("isFollowUp", checked as boolean)}
+          />
+          <Label htmlFor="isFollowUp">This is a follow-up appointment</Label>
+        </div>
+        
+        {APPOINTMENT_FORM_CONFIG.enableReminderSystem && (
+          <>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="confirmationRequired"
+                checked={formData.confirmationRequired}
+                onCheckedChange={(checked) => onFieldChange("confirmationRequired", checked as boolean)}
+              />
+              <Label htmlFor="confirmationRequired">Confirmation required</Label>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="isConfirmed"
+                checked={formData.isConfirmed}
+                onCheckedChange={(checked) => onFieldChange("isConfirmed", checked as boolean)}
+              />
+              <Label htmlFor="isConfirmed">Appointment confirmed</Label>
+            </div>
+          </>
+        )}
+        
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="followUpRequired"
+            checked={formData.followUpRequired}
+            onCheckedChange={(checked) => onFieldChange("followUpRequired", checked as boolean)}
+          />
+          <Label htmlFor="followUpRequired">Follow-up required</Label>
+        </div>
+      </div>
+      
+      {formData.followUpRequired && (
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="followUpDate">Follow-up Date</Label>
+            <Input
+              id="followUpDate"
+              type="date"
+              value={formData.followUpDate}
+              onChange={(e) => onFieldChange("followUpDate", e.target.value)}
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="followUpReason">Follow-up Reason</Label>
+            <Input
+              id="followUpReason"
+              value={formData.followUpReason}
+              onChange={(e) => onFieldChange("followUpReason", e.target.value)}
+              placeholder="Reason for follow-up"
+            />
+          </div>
+        </div>
+      )}
+    </CardContent>
+  </Card>
+)
+
+const NotesSection = ({
+  formData,
+  onFieldChange
+}: NotesSectionProps) => (
+  <Card>
+    <CardHeader>
+      <CardTitle className="text-lg">Notes</CardTitle>
+    </CardHeader>
+    <CardContent className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="notes">Public Notes</Label>
+        <Textarea
+          id="notes"
+          value={formData.notes}
+          onChange={(e) => onFieldChange("notes", e.target.value)}
+          rows={2}
+          placeholder="Notes visible to staff and clients..."
+        />
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="internalNotes">Internal Notes</Label>
+        <Textarea
+          id="internalNotes"
+          value={formData.internalNotes}
+          onChange={(e) => onFieldChange("internalNotes", e.target.value)}
+          rows={2}
+          placeholder="Internal notes for staff only..."
+        />
+      </div>
+    </CardContent>
+  </Card>
+)
+
+// Main component
+export function AppointmentForm({
+  appointment,
+  owners,
+  pets,
   veterinarians,
   statusOptions,
   typeOptions,
   priorityOptions,
-  open, 
-  onOpenChange, 
-  onSubmit 
+  open,
+  onOpenChange,
+  onSubmit
 }: AppointmentFormProps) {
-  const [formData, setFormData] = useState<FormData>({
-    appointmentNumber: "",
-    petId: "",
-    ownerId: "",
-    veterinarianId: "",
-    appointmentDatetime: "",
-    durationMinutes: 30,
-    statusId: 1, // Pending
-    typeId: 1, // General consultation
-    priorityId: 2, // Normal
-    reason: "",
-    isFollowUp: false,
-    parentAppointmentId: "",
-    petConditionOnArrival: "",
-    reminderSent: false,
-    confirmationRequired: true,
-    isConfirmed: false,
-    followUpRequired: false,
-    followUpDate: "",
-    followUpReason: "",
-    estimatedCost: "",
-    actualCost: "",
-    notes: "",
-    internalNotes: "",
-  })
-
+  const [formData, setFormData] = useState<AppointmentFormData>(DEFAULT_APPOINTMENT_FORM_VALUES)
+  const [errors, setErrors] = useState<AppointmentFormErrors>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [errors, setErrors] = useState<Record<string, string>>({})
+  const { toast } = useToast()
 
-  // Generate default values for new appointments
-  const defaultFormData = useMemo((): FormData => {
-    const appointmentNumber = `APT${Date.now().toString().slice(-6)}`
+  // Generate default form data for new appointments
+  const defaultFormData = useMemo((): AppointmentFormData => {
+    const appointmentNumber = APPOINTMENT_FORM_CONFIG.autoGenerateAppointmentNumber 
+      ? `APT${Date.now().toString().slice(-6)}`
+      : ""
+
     const now = new Date()
     now.setMinutes(Math.ceil(now.getMinutes() / 15) * 15) // Round to next 15 minutes
 
     return {
+      ...DEFAULT_APPOINTMENT_FORM_VALUES,
       appointmentNumber,
-      petId: "",
-      ownerId: "",
-      veterinarianId: "",
       appointmentDatetime: now.toISOString().slice(0, 16),
-      durationMinutes: 30,
-      statusId: 1,
-      typeId: 1,
-      priorityId: 2,
-      reason: "",
-      isFollowUp: false,
-      parentAppointmentId: "",
-      petConditionOnArrival: "",
-      reminderSent: false,
-      confirmationRequired: true,
-      isConfirmed: false,
-      followUpRequired: false,
-      followUpDate: "",
-      followUpReason: "",
-      estimatedCost: "",
-      actualCost: "",
-      notes: "",
-      internalNotes: "",
     }
   }, [])
 
-  // Reset form when dialog opens/closes or appointment changes
+  // Reset form when dialog opens/closes
   useEffect(() => {
     if (open) {
       if (appointment) {
+        // Edit mode - populate with existing appointment data
         setFormData({
           appointmentNumber: appointment.appointmentNumber,
           petId: appointment.petId,
@@ -134,7 +466,7 @@ export function AppointmentForm({
           appointmentDatetime: appointment.appointmentDatetime
             ? new Date(appointment.appointmentDatetime).toISOString().slice(0, 16)
             : defaultFormData.appointmentDatetime,
-          durationMinutes: appointment.durationMinutes || 30,
+          durationMinutes: appointment.durationMinutes || APPOINTMENT_FORM_CONFIG.defaultDuration,
           statusId: appointment.statusId,
           typeId: appointment.typeId,
           priorityId: appointment.priorityId,
@@ -154,6 +486,7 @@ export function AppointmentForm({
           internalNotes: appointment.internalNotes || "",
         })
       } else {
+        // Create mode - use default values
         setFormData(defaultFormData)
       }
       setErrors({})
@@ -166,28 +499,77 @@ export function AppointmentForm({
     return pets.filter((pet) => pet.ownerId === formData.ownerId)
   }, [formData.ownerId, pets])
 
-  // Validate form
-  const validateForm = (): boolean => {
-    const newErrors: Record<string, string> = {}
+  // Form validation
+  const validateForm = useCallback((): boolean => {
+    const newErrors: AppointmentFormErrors = {}
 
-    if (!formData.ownerId) newErrors.ownerId = "Owner is required"
-    if (!formData.petId) newErrors.petId = "Pet is required"
-    if (!formData.appointmentDatetime) newErrors.appointmentDatetime = "Date and time is required"
-    if (!formData.reason.trim()) newErrors.reason = "Reason for visit is required"
+    // Required fields validation
+    if (!formData.appointmentNumber.trim()) {
+      newErrors.appointmentNumber = "Appointment number is required"
+    }
 
-    // Validate date is not in the past
-    if (formData.appointmentDatetime && new Date(formData.appointmentDatetime) < new Date()) {
-      newErrors.appointmentDatetime = "Appointment cannot be in the past"
+    if (!formData.ownerId) {
+      newErrors.ownerId = "Owner is required"
+    }
+
+    if (!formData.petId) {
+      newErrors.petId = "Pet is required"
+    }
+
+    if (!formData.appointmentDatetime) {
+      newErrors.appointmentDatetime = "Date and time is required"
+    }
+
+    if (!formData.reason.trim()) {
+      newErrors.reason = "Reason for visit is required"
+    }
+
+    // Business logic validation
+    if (formData.appointmentDatetime && !APPOINTMENT_FORM_CONFIG.allowPastAppointments) {
+      const appointmentDate = new Date(formData.appointmentDatetime)
+      if (appointmentDate < new Date()) {
+        newErrors.appointmentDatetime = "Appointment cannot be in the past"
+      }
+    }
+
+    if (formData.durationMinutes < APPOINTMENT_FORM_CONFIG.minDuration || 
+        formData.durationMinutes > APPOINTMENT_FORM_CONFIG.maxDuration) {
+      newErrors.durationMinutes = `Duration must be between ${APPOINTMENT_FORM_CONFIG.minDuration} and ${APPOINTMENT_FORM_CONFIG.maxDuration} minutes`
+    }
+
+    if (APPOINTMENT_FORM_CONFIG.requireVeterinarianAssignment && !formData.veterinarianId) {
+      newErrors.veterinarianId = "Veterinarian assignment is required"
     }
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
-  }
+  }, [formData])
 
+  // Handle field changes
+  const handleFieldChange = useCallback(<K extends keyof AppointmentFormData>(
+    field: K,
+    value: AppointmentFormData[K]
+  ) => {
+    setFormData(prev => ({ ...prev, [field]: value }))
+    
+    // Clear error for this field when user starts typing
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: undefined }))
+    }
+  }, [errors])
+
+  // Form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!validateForm()) return
+    if (!validateForm()) {
+      toast({
+        title: "Validation Error",
+        description: "Please fix the errors in the form before submitting.",
+        variant: "destructive"
+      })
+      return
+    }
 
     setIsSubmitting(true)
 
@@ -230,248 +612,93 @@ export function AppointmentForm({
       }
 
       await onSubmit(appointmentData)
+      
+      toast({
+        title: "Success",
+        description: appointment 
+          ? "Appointment updated successfully" 
+          : "Appointment scheduled successfully",
+      })
+      
       onOpenChange(false)
     } catch (error) {
       console.error("Error submitting appointment:", error)
-      setErrors({ submit: "Failed to save appointment. Please try again." })
+      toast({
+        title: "Error",
+        description: "Failed to save appointment. Please try again.",
+        variant: "destructive"
+      })
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  const handleInputChange = (field: keyof FormData, value: string | number | boolean) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-    // Clear error when user starts typing
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: "" }))
-    }
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleNumberInputChange = (field: keyof FormData, value: string) => {
-    const numValue = value === "" ? "" : Number(value)
-    handleInputChange(field, numValue)
-  }
-
-  // Get today's datetime for min attribute
-  const now = new Date().toISOString().slice(0, 16)
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{appointment ? "Edit Appointment" : "Schedule New Appointment"}</DialogTitle>
+          <DialogTitle>
+            {appointment ? "Edit Appointment" : "Schedule New Appointment"}
+          </DialogTitle>
           <DialogDescription>
-            {appointment ? "Update the appointment details below." : "Enter the appointment information below."}
+            {appointment 
+              ? "Update the appointment details below." 
+              : "Enter the appointment information below."}
           </DialogDescription>
         </DialogHeader>
 
-        {errors.submit && (
-          <div className="bg-destructive/15 text-destructive px-4 py-3 rounded-md text-sm">
-            {errors.submit}
-          </div>
-        )}
-
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Basic Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Basic Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="appointmentNumber">Appointment Number *</Label>
-                  <Input
-                    id="appointmentNumber"
-                    value={formData.appointmentNumber}
-                    onChange={(e) => handleInputChange("appointmentNumber", e.target.value)}
-                    required
-                    disabled={!!appointment} // Disable editing for existing appointments
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="ownerId">Owner *</Label>
-                  <Select
-                    value={String(formData.ownerId)}
-                    onValueChange={(value) => handleInputChange("ownerId", Number(value))}
-                  >
-                    <SelectTrigger className={errors.ownerId ? "border-destructive" : ""}>
-                      <SelectValue placeholder="Select an owner" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {owners.map((owner) => (
-                        <SelectItem key={owner.id} value={String(owner.id)}>
-                          {owner.firstName} {owner.lastName}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {errors.ownerId && <p className="text-destructive text-sm">{errors.ownerId}</p>}
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="petId">Pet *</Label>
-                  <Select
-                    value={String(formData.petId)}
-                    onValueChange={(value) => handleInputChange("petId", Number(value))}
-                    disabled={!formData.ownerId}
-                  >
-                    <SelectTrigger className={errors.petId ? "border-destructive" : ""}>
-                      <SelectValue placeholder={formData.ownerId ? "Select a pet" : "Select an owner first"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {filteredPets.map((pet) => (
-                        <SelectItem key={pet.id} value={String(pet.id)}>
-                          {pet.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {errors.petId && <p className="text-destructive text-sm">{errors.petId}</p>}
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="veterinarianId">Assigned Veterinarian</Label>
-                  <Select
-                    value={String(formData.veterinarianId)}
-                    onValueChange={(value) => handleInputChange("veterinarianId", Number(value))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a veterinarian" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {veterinarians.map((vet) => (
-                        <SelectItem key={vet.id} value={String(vet.id)}>
-                          Dr. {vet.firstName} {vet.lastName}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <BasicInformationSection
+            formData={formData}
+            errors={errors}
+            owners={owners}
+            pets={pets}
+            veterinarians={veterinarians}
+            filteredPets={filteredPets}
+            onFieldChange={handleFieldChange}
+          />
 
-          {/* Scheduling */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Scheduling</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="appointmentDatetime">Date & Time *</Label>
-                  <Input
-                    id="appointmentDatetime"
-                    type="datetime-local"
-                    min={now}
-                    value={formData.appointmentDatetime}
-                    onChange={(e) => handleInputChange("appointmentDatetime", e.target.value)}
-                    className={errors.appointmentDatetime ? "border-destructive" : ""}
-                    required
-                  />
-                  {errors.appointmentDatetime && (
-                    <p className="text-destructive text-sm">{errors.appointmentDatetime}</p>
-                  )}
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="durationMinutes">Duration (minutes) *</Label>
-                  <Select
-                    value={String(formData.durationMinutes)}
-                    onValueChange={(value) => handleInputChange("durationMinutes", Number(value))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="15">15 minutes</SelectItem>
-                      <SelectItem value="30">30 minutes</SelectItem>
-                      <SelectItem value="45">45 minutes</SelectItem>
-                      <SelectItem value="60">1 hour</SelectItem>
-                      <SelectItem value="90">1.5 hours</SelectItem>
-                      <SelectItem value="120">2 hours</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="statusId">Status</Label>
-                  <Select
-                    value={String(formData.statusId)}
-                    onValueChange={(value) => handleInputChange("statusId", Number(value))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {statusOptions.map((status) => (
-                        <SelectItem key={status.id} value={String(status.id)}>
-                          {status.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="typeId">Type</Label>
-                  <Select
-                    value={String(formData.typeId)}
-                    onValueChange={(value) => handleInputChange("typeId", Number(value))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {typeOptions.map((type) => (
-                        <SelectItem key={type.id} value={String(type.id)}>
-                          {type.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="priorityId">Priority</Label>
-                  <Select
-                    value={String(formData.priorityId)}
-                    onValueChange={(value) => handleInputChange("priorityId", Number(value))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {priorityOptions.map((priority) => (
-                        <SelectItem key={priority.id} value={String(priority.id)}>
-                          {priority.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <SchedulingSection
+            formData={formData}
+            errors={errors}
+            statusOptions={statusOptions}
+            typeOptions={typeOptions}
+            priorityOptions={priorityOptions}
+            onFieldChange={handleFieldChange}
+          />
 
-          {/* Rest of the form components remain similar but with improved error handling */}
-          {/* ... (other sections like Appointment Details, Follow-up, Notes) */}
+          <AppointmentDetailsSection
+            formData={formData}
+            errors={errors}
+            onFieldChange={handleFieldChange}
+          />
 
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          <FollowUpSection
+            formData={formData}
+            onFieldChange={handleFieldChange}
+          />
+
+          <NotesSection
+            formData={formData}
+            onFieldChange={handleFieldChange}
+          />
+
+          <div className="flex justify-end gap-2 pt-4">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => onOpenChange(false)}
+              disabled={isSubmitting}
+            >
               Cancel
             </Button>
             <Button 
               type="submit" 
-              disabled={isSubmitting || !formData.ownerId || !formData.petId}
+              disabled={isSubmitting}
             >
-              {isSubmitting ? "Saving..." : appointment ? "Update" : "Schedule"}
+              {isSubmitting 
+                ? "Saving..." 
+                : appointment ? "Update Appointment" : "Schedule Appointment"}
             </Button>
           </div>
         </form>
