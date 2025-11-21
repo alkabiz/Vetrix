@@ -7,19 +7,6 @@ export interface PetFormProps {
   pet?: Pet | null
   owners: Owner[]
   species: Species[]
-  breeds: Breed[]
-  colors: Color[]
-  sexes: Sex[]
-  sterilizationTypes: SterilizationType[]
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onSubmit: (pet: Omit<Pet, "id" | "createdAt" | "updatedAt">) => Promise<void>
-}
-
-// Form data type matching database schema
-export type PetFormData = {
-  petNumber: string
-  ownerId: number | ""
   name: string
   speciesId: number | ""
   breedId: number | ""
