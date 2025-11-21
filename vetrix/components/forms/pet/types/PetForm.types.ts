@@ -7,6 +7,19 @@ export interface PetFormProps {
   pet?: Pet | null
   owners: Owner[]
   species: Species[]
+  breeds: Breed[]
+  colors: Color[]
+  sexes: Sex[]
+  sterilizationTypes: SterilizationType[]
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  onSubmit: (pet: Omit<Pet, "id" | "createdAt" | "updatedAt">) => Promise<void>
+}
+
+// Form data type matching database schema
+export type PetFormData = {
+  petNumber: string
+  ownerId: number | ""
   name: string
   speciesId: number | ""
   breedId: number | ""
@@ -190,5 +203,35 @@ export interface PetFormConfig {
   minPetNameLength: number
   maxPetNameLength: number
   maxWeight: number
+  allowFutureDates: boolean
+  enableAdvancedMedical: boolean
+}
+
+// Hook props
+export interface UsePetFormProps {
+  pet?: Pet | null
+  onSubmit: (pet: Omit<Pet, "id" | "createdAt" | "updatedAt">) => Promise<void>
+}
+
+// Hook return types
+export interface UsePetFormReturn {
+  formData: PetFormData
+  errors: PetFormErrors
+  isSubmitting: boolean
+  isDirty: boolean
+  handleFieldChange: <K extends keyof PetFormData>(
+    field: K,
+    value: PetFormData[K]
+  ) => void
+  handleSubmit: () => Promise<void>
+  validateForm: () => boolean
+  validateField: (field: keyof PetFormData) => boolean
+  resetForm: () => void
+}
+
+// Type inference from Zod schemas
+export type PetBasicInfoInput = z.infer<typeof petBasicInfoSchema>
+export type PetMedicalInfoInput = z.infer<typeof petMedicalInfoSchema>
+export type PetIdentificationInput = z.infer<typeof petIdentificationSchema>
 export type PetBehaviorInput = z.infer<typeof petBehaviorSchema>
 export type PetFormInput = z.infer<typeof petFormSchema>
