@@ -114,7 +114,7 @@ export interface BasicInformationSectionProps {
   colors: Color[]
   sexes: Sex[]
   onFieldChange: <K extends keyof BasicInformationData>(
-    field: K, 
+    field: K,
     value: BasicInformationData[K]
   ) => void
 }
@@ -123,7 +123,7 @@ export interface BirthAndAgeSectionProps {
   formData: BirthAndAgeData
   errors: PetFormErrors
   onFieldChange: <K extends keyof BirthAndAgeData>(
-    field: K, 
+    field: K,
     value: BirthAndAgeData[K]
   ) => void
 }
@@ -132,7 +132,7 @@ export interface IdentificationSectionProps {
   formData: IdentificationData
   errors: PetFormErrors
   onFieldChange: <K extends keyof IdentificationData>(
-    field: K, 
+    field: K,
     value: IdentificationData[K]
   ) => void
 }
@@ -142,7 +142,7 @@ export interface MedicalInformationSectionProps {
   errors: PetFormErrors
   sterilizationTypes: SterilizationType[]
   onFieldChange: <K extends keyof MedicalInformationData>(
-    field: K, 
+    field: K,
     value: MedicalInformationData[K]
   ) => void
 }
@@ -151,7 +151,7 @@ export interface BehavioralAndCareSectionProps {
   formData: BehavioralAndCareData
   errors: PetFormErrors
   onFieldChange: <K extends keyof BehavioralAndCareData>(
-    field: K, 
+    field: K,
     value: BehavioralAndCareData[K]
   ) => void
 }
@@ -160,7 +160,7 @@ export interface AcquisitionInformationSectionProps {
   formData: AcquisitionInformationData
   errors: PetFormErrors
   onFieldChange: <K extends keyof AcquisitionInformationData>(
-    field: K, 
+    field: K,
     value: AcquisitionInformationData[K]
   ) => void
 }
@@ -203,27 +203,5 @@ export interface PetFormConfig {
   minPetNameLength: number
   maxPetNameLength: number
   maxWeight: number
-  allowFutureDates: boolean
-  enableAdvancedMedical: boolean
-}
-
-// Hook return types
-export interface UsePetFormReturn {
-  formData: PetFormData
-  errors: PetFormErrors
-  isSubmitting: boolean
-  filteredBreeds: Breed[]
-  handleFieldChange: <K extends keyof PetFormData>(
-    field: K, 
-    value: PetFormData[K]
-  ) => void
-  validateForm: () => boolean
-  resetForm: () => void
-}
-
-// Type inference from Zod schemas
-export type PetBasicInfoInput = z.infer<typeof petBasicInfoSchema>
-export type PetMedicalInfoInput = z.infer<typeof petMedicalInfoSchema>
-export type PetIdentificationInput = z.infer<typeof petIdentificationSchema>
 export type PetBehaviorInput = z.infer<typeof petBehaviorSchema>
 export type PetFormInput = z.infer<typeof petFormSchema>
