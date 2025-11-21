@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Eye, EyeOff, RefreshCw } from "lucide-react"
-import { PasswordStrengthIndicator } from "./ui/password-strength-indicator"
+import { PasswordStrengthIndicator } from "./"
 
 interface EnhancedPasswordInputProps {
   id?: string
