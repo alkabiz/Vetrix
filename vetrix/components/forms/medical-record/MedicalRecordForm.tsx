@@ -28,13 +28,13 @@ export function MedicalRecordForm({
   onSubmit,
 }: MedicalRecordFormProps) {
   const [formData, setFormData] = useState({
-    pet_id: "",
-    appointment_id: "",
+    petId: "",
+    appointmentId: "",
     visit_date: "",
-    reason_for_visit: "",
-    diagnosis: "",
-    treatment: "",
-    notes: "",
+    chiefComplaint: "",
+    historyPresentIllness: "",
+    prognosisNotes: "",
+    veterinarianNotes: "",
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [filteredAppointments, setFilteredAppointments] = useState<Appointment[]>([])
@@ -42,57 +42,58 @@ export function MedicalRecordForm({
   useEffect(() => {
     if (record) {
       setFormData({
-        pet_id: String(record.pet_id),
-        appointment_id: record.appointment_id ? String(record.appointment_id) : "",
-        visit_date: record.visit_date,
-        reason_for_visit: record.reason_for_visit,
-        diagnosis: record.diagnosis || "",
-        treatment: record.treatment || "",
-        notes: record.notes || "",
+        petId: String(record.petId),
+        appointmentId: record.appointmentId ? String(record.appointmentId) : "",
+        visit_date: String(record.visit_date),
+        chiefComplaint: record.chiefComplaint,
+        historyPresentIllness: record.historyPresentIllness || "",
+        prognosisNotes: record.prognosisNotes || "",
+        veterinarianNotes: record.veterinarianNotes || "",
       })
     } else {
       // Set today's date as default
       const today = new Date().toISOString().split("T")[0]
       setFormData({
-        pet_id: "",
-        appointment_id: "",
+        petId: "",
+        appointmentId: "",
         visit_date: today,
-        reason_for_visit: "",
-        diagnosis: "",
-        treatment: "",
-        notes: "",
+        chiefComplaint: "",
+        historyPresentIllness: "",
+        prognosisNotes: "",
+        veterinarianNotes: "",
       })
     }
   }, [record, open])
 
   useEffect(() => {
-    if (formData.pet_id) {
-      const petAppointments = appointments.filter((appointment) => String(appointment.pet_id) === formData.pet_id)
+    if (formData.petId) {
+      const petAppointments = appointments.filter((appointment) => String(appointment.petId) === formData.petId)
       setFilteredAppointments(petAppointments)
 
       // Reset appointment selection if current appointment doesn't belong to selected pet
-      if (formData.appointment_id && !petAppointments.find((apt) => String(apt.id) === formData.appointment_id)) {
-        setFormData((prev) => ({ ...prev, appointment_id: "" }))
+      if (formData.appointmentId && !petAppointments.find((apt) => String(apt.id) === formData.appointmentId)) {
+        setFormData((prev) => ({ ...prev, appointmentId: "" }))
       }
     } else {
       setFilteredAppointments([])
-      setFormData((prev) => ({ ...prev, appointment_id: "" }))
+      setFormData((prev) => ({ ...prev, appointmentId: "" }))
     }
-  }, [formData.pet_id, appointments])
+  }, [formData.petId, appointments])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
 
     try {
-      const recordData = {
-        pet_id: Number(formData.pet_id),
-        appointment_id: formData.appointment_id ? Number(formData.appointment_id) : undefined,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const recordData: any = {
+        petId: Number(formData.petId),
+        appointmentId: formData.appointmentId ? Number(formData.appointmentId) : undefined,
         visit_date: formData.visit_date,
-        reason_for_visit: formData.reason_for_visit,
-        diagnosis: formData.diagnosis || undefined,
-        treatment: formData.treatment || undefined,
-        notes: formData.notes || undefined,
+        chiefComplaint: formData.chiefComplaint,
+        historyPresentIllness: formData.historyPresentIllness || undefined,
+        prognosisNotes: formData.prognosisNotes || undefined,
+        veterinarianNotes: formData.veterinarianNotes || undefined,
       }
 
       await onSubmit(recordData)
@@ -105,13 +106,16 @@ export function MedicalRecordForm({
   }
 
   const formatAppointmentOption = (appointment: Appointment) => {
-    const date = new Date(appointment.appointment_date).toLocaleDateString()
-    const time = new Date(`2000-01-01T${appointment.appointment_time}`).toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
-    })
-    return `${date} at ${time} (${appointment.status})`
+    const date = new Date(appointment.appointmentDate).toLocaleDateString()
+    let timeString = ""
+    if (appointment.appointmentDatetime) {
+      timeString = new Date(appointment.appointmentDatetime).toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      })
+    }
+    return `${date} ${timeString ? "at " + timeString : ""} (${appointment.statusId})`
   }
 
   return (
@@ -125,15 +129,15 @@ export function MedicalRecordForm({
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="pet_id">Mascota *</Label>
-            <Select value={formData.pet_id} onValueChange={(value) => setFormData({ ...formData, pet_id: value })}>
+            <Label htmlFor="petId">Mascota *</Label>
+            <Select value={formData.petId} onValueChange={(value) => setFormData({ ...formData, petId: value })}>
               <SelectTrigger>
                 <SelectValue placeholder="Select a pet" />
               </SelectTrigger>
               <SelectContent>
                 {pets.map((pet) => (
                   <SelectItem key={pet.id} value={String(pet.id)}>
-                    {pet.name} ({pet.speciesId}) - {pet.owner_name}
+                    {pet.name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -141,13 +145,13 @@ export function MedicalRecordForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="appointment_id">Cita relacionada (opcional)</Label>
+            <Label htmlFor="appointmentId">Cita relacionada (opcional)</Label>
             <Select
-              value={formData.appointment_id}
-              onValueChange={(value) => setFormData({ ...formData, appointment_id: value })}
+              value={formData.appointmentId}
+              onValueChange={(value) => setFormData({ ...formData, appointmentId: value })}
             >
               <SelectTrigger>
-                <SelectValue placeholder={formData.pet_id ? "Selecciona una cita" : "Selecciona primero una mascota."} />
+                <SelectValue placeholder={formData.petId ? "Selecciona una cita" : "Selecciona primero una mascota."} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">Sin cita previa</SelectItem>
@@ -172,11 +176,11 @@ export function MedicalRecordForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="reason_for_visit">Motivo de la visita *</Label>
+            <Label htmlFor="chiefComplaint">Motivo de la visita *</Label>
             <Textarea
-              id="reason_for_visit"
-              value={formData.reason_for_visit}
-              onChange={(e) => setFormData({ ...formData, reason_for_visit: e.target.value })}
+              id="chiefComplaint"
+              value={formData.chiefComplaint}
+              onChange={(e) => setFormData({ ...formData, chiefComplaint: e.target.value })}
               rows={2}
               placeholder="Por ejemplo, revisión anual, cojera, vacunación, etc."
               required
@@ -184,33 +188,33 @@ export function MedicalRecordForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="diagnosis">Diagnóstico</Label>
+            <Label htmlFor="historyPresentIllness">Diagnóstico</Label>
             <Textarea
-              id="diagnosis"
-              value={formData.diagnosis}
-              onChange={(e) => setFormData({ ...formData, diagnosis: e.target.value })}
+              id="historyPresentIllness"
+              value={formData.historyPresentIllness}
+              onChange={(e) => setFormData({ ...formData, historyPresentIllness: e.target.value })}
               rows={2}
               placeholder="Diagnóstico clínico o hallazgos..."
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="treatment">Tratamiento</Label>
+            <Label htmlFor="prognosisNotes">Tratamiento</Label>
             <Textarea
-              id="treatment"
-              value={formData.treatment}
-              onChange={(e) => setFormData({ ...formData, treatment: e.target.value })}
+              id="prognosisNotes"
+              value={formData.prognosisNotes}
+              onChange={(e) => setFormData({ ...formData, prognosisNotes: e.target.value })}
               rows={3}
               placeholder="Plan de tratamiento, medicamentos, procedimientos, etc."
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="notes">Notas adicionales</Label>
+            <Label htmlFor="veterinarianNotes">Notas adicionales</Label>
             <Textarea
-              id="notes"
-              value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              id="veterinarianNotes"
+              value={formData.veterinarianNotes}
+              onChange={(e) => setFormData({ ...formData, veterinarianNotes: e.target.value })}
               rows={2}
               placeholder="Cualquier observación o nota adicional..."
             />
@@ -220,7 +224,7 @@ export function MedicalRecordForm({
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={isSubmitting || !formData.pet_id}>
+            <Button type="submit" disabled={isSubmitting || !formData.petId}>
               {isSubmitting ? "Guardando..." : record ? "Actualizar" : "Crear"}
             </Button>
           </div>
