@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { logout, blacklistToken } from "@/lib/auth-enhanced"
+import { logout, blacklistToken } from "@/lib/auth/auth-enhanced"
 
 export async function POST(request: NextRequest) {
   try {

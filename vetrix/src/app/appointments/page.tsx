@@ -1,17 +1,17 @@
 "use client"
 
 import { useState } from "react"
-import { DashboardLayout } from "@/components/dashboard-layout"
-import { DataTable } from "@/components/data-table"
-import { AppointmentForm } from "@/components/appointment-form"
+import { DashboardLayout } from "@/components/layout/dashboard-layout"
+import { DataTable } from "@/components/ui/data-table"
+import { AppointmentForm } from "@/components/forms/appointment/AppointmentForm"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
 import { Calendar, Clock, User, Heart } from "lucide-react"
-import type { Appointment, Owner, Pet } from "@/lib/database"
-import { AuthWrapper } from "@/components/auth-wrapper"
-import { ProtectedRoute } from "@/components/protected-route"
+import type { Appointment, Owner, Pet } from "@/lib/database/database"
+import { AuthWrapper } from "@/components/auth/auth-wrapper"
+import { ProtectedRoute } from "@/components/auth/protected-route"
 import { useAuth } from "@/contexts/auth-context"
 
 const mockOwners: Owner[] = [

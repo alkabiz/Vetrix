@@ -19,7 +19,14 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "forms/*": ["./components/forms/*"],
+      "validation/*": ["./lib/utils/validation/*"],
+      "api/*": ["./lib/api/*"],
+      "database/*": ["./lib/database/*"],
+      "types/*": ["./lib/types/*"],
+      "config/*": ["./lib/config/*"],
+      "auth/*": ["./lib/auth/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

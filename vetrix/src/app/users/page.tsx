@@ -5,11 +5,11 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Users, Shield, UserCheck, MoreHorizontal, Trash2, Edit, UserCog } from "lucide-react"
-import { RegisterForm } from "@/components/register-form"
+import { RegisterForm } from "../../../components/auth/register-form"
 import { useToast } from "@/hooks/use-toast"
-import { DashboardLayout } from "@/components/dashboard-layout"
-import { ProtectedRoute } from "@/components/protected-route"
-import { AuthWrapper } from "@/components/auth-wrapper"
+import { DashboardLayout } from "@/components/layout/dashboard-layout"
+import { ProtectedRoute } from "@/components/auth/protected-route"
+import { AuthWrapper } from "@/components/auth/auth-wrapper"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import {
   AlertDialog,
@@ -33,7 +33,7 @@ interface User {
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([])
   const [isRegisterOpen, setIsRegisterOpen] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
+  //const [isLoading, setIsLoading] = useState(true)
   const [deleteUser, setDeleteUser] = useState<User | null>(null)
   const { toast } = useToast()
 
@@ -65,7 +65,7 @@ export default function UsersPage() {
   useEffect(() => {
     // Use mock data for immediate display
     setUsers(mockUsers)
-    setIsLoading(false)
+    //setIsLoading(false)
   }, [])
 
   const handleDeleteUser = async (user: User) => {
@@ -99,7 +99,7 @@ export default function UsersPage() {
     }
   }
 
-  const getRoleBadgeVariant = (role: string) => {
+  const getRoleBadgeVariant = (role: User["role"]): "default" | "destructive" | "secondary" | "outline" | null | undefined => {
     switch (role) {
       case "admin":
         return "destructive"
@@ -205,7 +205,7 @@ export default function UsersPage() {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Badge variant={getRoleBadgeVariant(user.role) as any} className="capitalize">
+                        <Badge variant={getRoleBadgeVariant(user.role)} className="capitalize">
                           {user.role}
                         </Badge>
                         <DropdownMenu>

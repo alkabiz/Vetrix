@@ -1,116 +1,113 @@
 "use client"
 
-import { useState } from "react"
-import { DashboardLayout } from "@/components/dashboard-layout"
-import { DataTable } from "@/components/data-table"
-import { PetForm } from "@/components/pet-form"
+import { useState, useEffect } from "react"
+import { DashboardLayout } from "@/components/layout/dashboard-layout"
+import { DataTable } from "@/components/ui/data-table"
+import { PetForm } from "@/components/forms/pet/PetForm"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
-import type { Pet, Owner } from "@/lib/database"
-import { AuthWrapper } from "@/components/auth-wrapper"
-import { ProtectedRoute } from "@/components/protected-route"
+import type { Pet, Owner, Species, Breed, Color, Sex, SterilizationType, User } from "@/lib/database/database"
+import { AuthWrapper } from "@/components/auth/auth-wrapper"
+import { ProtectedRoute } from "@/components/auth/protected-route"
 import { useAuth } from "@/contexts/auth-context"
+import { canManagePets } from "@/lib/utils/permissions"
 
-const mockOwners: Owner[] = [
+interface PetWithDisplay extends Omit<Pet, 'owner_name' | 'species' | 'breed' | 'sex' | 'age' | 'weight'> {
+  owner_name: string
+  species: string
+  breed: string
+  sex: string
+  age: number
+  weight: number
+}
+
+interface OwnerWithDisplay extends Omit<Owner, 'name'> {
+  name: string
+  phone: string
+  email: string
+  address: string
+}
+
+const mockSpecies: Species[] = [
+  { id: 1, name: "Dog", scientificName: "Canis lupus familiaris", averageLifespanYears: 13, isActive: true, createdAt: new Date(), updatedAt: new Date() },
+  { id: 2, name: "Cat", scientificName: "Felis catus", averageLifespanYears: 15, isActive: true, createdAt: new Date(), updatedAt: new Date() },
+]
+
+const mockBreeds: Breed[] = [
+  { id: 1, speciesId: 1, name: "Golden Retriever", sizeCategoryId: 4, averageWeightMin: 25, averageWeightMax: 34, isActive: true, createdAt: new Date(), updatedAt: new Date() },
+  { id: 2, speciesId: 2, name: "Siamese", sizeCategoryId: 2, averageWeightMin: 3, averageWeightMax: 5, isActive: true, createdAt: new Date(), updatedAt: new Date() },
+]
+
+const mockColors: Color[] = [
+  { id: 1, name: "Golden", hexCode: "#FFD700", isActive: true, createdAt: new Date() },
+  { id: 2, name: "Cream", hexCode: "#FFFDD0", isActive: true, createdAt: new Date() },
+]
+
+const mockSexes: Sex[] = [
+  { id: 1, name: "Male", abbreviation: "M", isActive: true, createdAt: new Date() },
+  { id: 2, name: "Female", abbreviation: "F", isActive: true, createdAt: new Date() },
+]
+
+const mockSterilizationTypes: SterilizationType[] = [
+  { id: 1, code: "NEUTER", description: "Neutering", isActive: true, createdAt: new Date() },
+  { id: 2, code: "SPAY", description: "Spaying", isActive: true, createdAt: new Date() },
+]
+
+const mockOwners: OwnerWithDisplay[] = [
   {
     id: 1,
+    firstName: "John",
+    lastName: "Smith",
     name: "John Smith",
-    phone: "(555) 123-4567",
+    phonePrimary: "(555) 123-4567",
     email: "john.smith@email.com",
+    addressStreet: "123 Main St",
+    phone: "(555) 123-4567",
     address: "123 Main St, Anytown, ST 12345",
-    created_at: "2024-01-15T10:30:00Z",
-    updated_at: "2024-01-15T10:30:00Z",
-  },
-  {
-    id: 2,
-    name: "Sarah Johnson",
-    phone: "(555) 987-6543",
-    email: "sarah.j@email.com",
-    address: "456 Oak Ave, Somewhere, ST 67890",
-    created_at: "2024-01-20T14:15:00Z",
-    updated_at: "2024-01-20T14:15:00Z",
-  },
-  {
-    id: 3,
-    name: "Mike Wilson",
-    phone: "(555) 456-7890",
-    email: "mike.wilson@email.com",
-    address: "789 Pine Rd, Elsewhere, ST 54321",
-    created_at: "2024-02-01T09:45:00Z",
-    updated_at: "2024-02-01T09:45:00Z",
+    marketingConsent: true,
+    dataProcessingConsent: true,
+    isActive: true,
+    creditLimit: 1000,
+    createdAt: new Date("2024-01-15T10:30:00Z"),
+    updatedAt: new Date("2024-01-15T10:30:00Z"),
   },
 ]
 
-const mockPets: Pet[] = [
+const mockPets: PetWithDisplay[] = [
   {
     id: 1,
+    petNumber: "PET001",
     name: "Buddy",
+    ownerId: 1,
+    speciesId: 1,
+    breedId: 1,
+    sexId: 1,
+    primaryColorId: 1,
+    owner_name: "John Smith",
     species: "Dog",
     breed: "Golden Retriever",
     sex: "Male",
     age: 5,
     weight: 65,
-    owner_id: 1,
-    owner_name: "John Smith",
-    created_at: "2024-01-15T11:00:00Z",
-    updated_at: "2024-01-15T11:00:00Z",
-  },
-  {
-    id: 2,
-    name: "Luna",
-    species: "Cat",
-    breed: "Siamese",
-    sex: "Female",
-    age: 3,
-    weight: 8,
-    owner_id: 2,
-    owner_name: "Sarah Johnson",
-    created_at: "2024-01-20T15:30:00Z",
-    updated_at: "2024-01-20T15:30:00Z",
-  },
-  {
-    id: 3,
-    name: "Max",
-    species: "Dog",
-    breed: "German Shepherd",
-    sex: "Male",
-    age: 7,
-    weight: 75,
-    owner_id: 3,
-    owner_name: "Mike Wilson",
-    created_at: "2024-02-01T10:15:00Z",
-    updated_at: "2024-02-01T10:15:00Z",
-  },
-  {
-    id: 4,
-    name: "Whiskers",
-    species: "Cat",
-    breed: "Persian",
-    sex: "Female",
-    age: 2,
-    weight: 10,
-    owner_id: 1,
-    owner_name: "John Smith",
-    created_at: "2024-02-05T14:20:00Z",
-    updated_at: "2024-02-05T14:20:00Z",
+    isBirthEstimated: false,
+    isActive: true,
+    createdAt: new Date("2024-01-15T11:00:00Z"),
+    updatedAt: new Date("2024-01-15T11:00:00Z"),
   },
 ]
 
 export default function PetsPage() {
-  const [pets, setPets] = useState<Pet[]>(mockPets)
-  const [owners, setOwners] = useState<Owner[]>(mockOwners)
-  const [selectedPet, setSelectedPet] = useState<Pet | null>(null)
+  const [pets, setPets] = useState<PetWithDisplay[]>(mockPets)
+  const [selectedPet, setSelectedPet] = useState<PetWithDisplay | null>(null)
   const [isFormOpen, setIsFormOpen] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading] = useState(false)
   const { toast } = useToast()
   const { user } = useAuth()
 
-  const canDelete = user?.role === "admin" || user?.role === "vet"
-  const canEdit = user?.role === "admin" || user?.role === "vet" || user?.role === "assistant"
-  const canAdd = user?.role === "admin" || user?.role === "vet" || user?.role === "assistant"
+  const permissions = canManagePets(user)
 
   const handleAddPet = () => {
-    if (!canAdd) {
+    if (!permissions.canAdd) {
       toast({
         title: "Acceso denegado",
         description: "No tienes permiso para agregar mascotas.",
@@ -122,8 +119,8 @@ export default function PetsPage() {
     setIsFormOpen(true)
   }
 
-  const handleEditPet = (pet: Pet) => {
-    if (!canEdit) {
+  const handleEditPet = (pet: PetWithDisplay) => {
+    if (!permissions.canEdit) {
       toast({
         title: "Acceso denegado",
         description: "No tienes permiso para editar mascotas.",
@@ -135,8 +132,8 @@ export default function PetsPage() {
     setIsFormOpen(true)
   }
 
-  const handleDeletePet = async (pet: Pet) => {
-    if (!canDelete) {
+  const handleDeletePet = async (pet: PetWithDisplay) => {
+    if (!permissions.canDelete) {
       toast({
         title: "Acceso denegado",
         description: "No tienes permiso para eliminar mascotas.",
@@ -145,7 +142,7 @@ export default function PetsPage() {
       return
     }
 
-    if (!confirm(`¿Estás seguro de que quieres eliminar? ${pet.name}?`)) {
+    if (!confirm(`¿Estás seguro de que quieres eliminar a ${pet.name}?`)) {
       return
     }
 
@@ -156,56 +153,75 @@ export default function PetsPage() {
     })
   }
 
-  const handleSubmitPet = async (petData: Omit<Pet, "id" | "created_at" | "updated_at" | "owner_name">) => {
-    const owner = owners.find((o) => o.id === petData.owner_id)
+  const handleSubmitPet = async (petData: Omit<Pet, "id" | "createdAt" | "updatedAt">) => {
+    try {
+      const owner = mockOwners.find((o) => o.id === petData.ownerId)
 
-    if (selectedPet) {
-      // Update existing pet
-      const updatedPet = {
-        ...selectedPet,
-        ...petData,
-        owner_name: owner?.name || "",
-        updated_at: new Date().toISOString(),
+      if (selectedPet) {
+        // Update existing pet
+        const updatedPet: PetWithDisplay = {
+          ...selectedPet,
+          ...petData,
+          owner_name: owner?.name || selectedPet.owner_name,
+          species: mockSpecies.find(s => s.id === petData.speciesId)?.name || selectedPet.species,
+          breed: mockBreeds.find(b => b.id === petData.breedId)?.name || selectedPet.breed,
+          sex: mockSexes.find(s => s.id === petData.sexId)?.name || selectedPet.sex,
+          updatedAt: new Date(),
+        }
+        setPets(pets.map((p) => (p.id === selectedPet.id ? updatedPet : p)))
+        toast({
+          title: "Éxito",
+          description: "Mascota actualizada con éxito",
+        })
+      } else {
+        // Add new pet
+        const newPet: PetWithDisplay = {
+          id: Math.max(0, ...pets.map((p) => p.id)) + 1,
+          ...petData,
+          owner_name: owner?.name || "",
+          species: mockSpecies.find(s => s.id === petData.speciesId)?.name || "",
+          breed: mockBreeds.find(b => b.id === petData.breedId)?.name || "",
+          sex: mockSexes.find(s => s.id === petData.sexId)?.name || "",
+          age: 0, // You'll need to calculate this from dateOfBirth
+          weight: 0, // This should come from form data
+          isBirthEstimated: petData.isBirthEstimated || false,
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }
+        setPets([...pets, newPet])
+        toast({
+          title: "Éxito",
+          description: "Mascota creada con éxito.",
+        })
       }
-      setPets(pets.map((p) => (p.id === selectedPet.id ? updatedPet : p)))
+      setIsFormOpen(false)
+      setSelectedPet(null)
+    } catch (error) {
       toast({
-        title: "Éxito",
-        description: "Mascota actualizada con éxito",
-      })
-    } else {
-      // Add new pet
-      const newPet: Pet = {
-        id: Math.max(...pets.map((p) => p.id)) + 1,
-        ...petData,
-        owner_name: owner?.name || "",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      }
-      setPets([...pets, newPet])
-      toast({
-        title: "Éxito",
-        description: "Mascota creada con éxito.",
+        title: "Error",
+        description: "Ocurrió un error al guardar la mascota.",
+        variant: "destructive",
       })
     }
-    setIsFormOpen(false)
   }
 
   const columns = [
-    { key: "name", label: "Pet Name" },
-    { key: "owner_name", label: "Owner" },
-    { key: "species", label: "Species" },
-    { key: "breed", label: "Breed" },
+    { key: "name", label: "Nombre de Mascota" },
+    { key: "owner_name", label: "Propietario" },
+    { key: "species", label: "Especie" },
+    { key: "breed", label: "Raza" },
     {
       key: "sex",
-      label: "Sex",
+      label: "Sexo",
       render: (value: string) => (
         <Badge variant={value === "Male" ? "default" : value === "Female" ? "secondary" : "outline"}>
-          {value || "Unknown"}
+          {value || "Desconocido"}
         </Badge>
       ),
     },
-    { key: "age", label: "Age", render: (value: number) => (value ? `${value} yrs` : "-") },
-    { key: "weight", label: "Weight", render: (value: number) => (value ? `${value} lbs` : "-") },
+    { key: "age", label: "Edad", render: (value: number) => (value ? `${value} años` : "-") },
+    { key: "weight", label: "Peso", render: (value: number) => (value ? `${value} lbs` : "-") },
   ]
 
   if (isLoading) {
@@ -240,19 +256,24 @@ export default function PetsPage() {
               description="Todas las mascotas registradas en el sistema"
               data={pets}
               columns={columns}
-              onAdd={canAdd ? handleAddPet : undefined}
-              onEdit={canEdit ? handleEditPet : undefined}
-              onDelete={canDelete ? handleDeletePet : undefined}
+              onAdd={permissions.canAdd ? handleAddPet : undefined}
+              onEdit={permissions.canEdit ? handleEditPet : undefined}
+              onDelete={permissions.canDelete ? handleDeletePet : undefined}
               searchPlaceholder="Buscar mascotas..."
               addButtonText="Añadir mascota"
             />
 
             <PetForm
               pet={selectedPet}
-              owners={owners}
+              owners={mockOwners}
               open={isFormOpen}
               onOpenChange={setIsFormOpen}
               onSubmit={handleSubmitPet}
+              species={mockSpecies}
+              breeds={mockBreeds}
+              colors={mockColors}
+              sexes={mockSexes}
+              sterilizationTypes={mockSterilizationTypes}
             />
           </div>
         </DashboardLayout>

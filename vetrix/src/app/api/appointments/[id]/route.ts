@@ -1,8 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { getDatabase, type Appointment } from "@/lib/database"
-import { requireAnyRole, requireVetOrAdmin } from "@/lib/middleware"
-import { appointmentSchema, validateRequest, validateIdParam } from "@/lib/validation"
-import { handleApiError, logRequest, NotFoundError } from "@/lib/error-handler"
+import { getDatabase, type Appointment } from "@/lib/database/database"
+import { requireAnyRole, requireVetOrAdmin } from "@/lib/config/middleware"
+import { appointmentSchema, validateRequest, validateIdParam } from "@/lib/utils/validation/validators"
+import { handleApiError, logRequest, NotFoundError } from "@/lib/utils/error-handler"
 
 export const GET = requireAnyRole(async (request: NextRequest, context, { params }: { params: { id: string } }) => {
   try {

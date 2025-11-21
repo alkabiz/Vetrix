@@ -15,7 +15,24 @@
     "utils": "@/lib/utils",
     "ui": "@/components/ui",
     "lib": "@/lib",
-    "hooks": "@/hooks"
+    "hooks": "@/hooks",
+
+    "appointment": "@/components/forms/appointment",
+    "pet": "@/components/forms/pet",
+    "owner": "@/components/forms/owner",
+    "invoice": "@/components/forms/invoice",
+    "medical": "@/components/forms/medical-record",
+    "veterinarian": "@/components/forms/veterinarian",
+
+    "schemas": "@/lib/utils/validation/schemas",
+    "validators": "@/lib/utils/validation/validators",
+
+    "api-clients": "@/lib/api/clients",
+    "api-queries": "@/lib/api/query-clients",
+
+    "appointment-types": "@/lib/types/appointment.types",
+    "pet-types": "@/lib/types/pet.types",
+    "owner-types": "@/lib/types/owner.types"
   },
   "iconLibrary": "lucide"
 }

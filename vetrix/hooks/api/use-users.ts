@@ -1,9 +1,9 @@
 "use client"
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { apiClient } from "@/lib/api-client"
+import { apiClient } from "@/lib/api/clients/api-clients/api-client"
 import { toast } from "@/hooks/use-toast"
-import type { User } from "@/lib/types"
+import type { User } from "@/lib/database/database"
 
 // Query keys for better cache management
 export const userKeys = {

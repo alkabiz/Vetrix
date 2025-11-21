@@ -1,89 +1,124 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { verifyAccessToken, type User } from "@/lib/auth-enhanced"
-import type { UserRole } from "@/lib/types"
-import { permissions } from "./lib/permissions"
+import { verifyToken, extractTokenFromRequest } from "@/lib/auth"
 
-// Tipo para el contexto de autenticación
-export interface AuthContext {
-  user: User
+const protectedRoutes = {
+  "/dashboard": { roles: ["admin", "vet", "assistant"] },
+  "/dashboard/admin": { roles: ["admin"] },
+  "/dashboard/medical": { roles: ["admin", "vet"] },
+  "/dashboard/appointments": { roles: ["admin", "vet", "assistant"] },
+  "/dashboard/tasks": { roles: ["admin", "vet", "assistant"] },
+  "/users": { roles: ["admin"] },
+  "/medical-records": { roles: ["admin", "vet"] },
+  "/appointments": { roles: ["admin", "vet", "assistant"] },
+  "/pets": { roles: ["admin", "vet", "assistant"] },
+  "/owners": { roles: ["admin", "vet", "assistant"] },
+  "/invoices": { roles: ["admin", "vet"] },
+  "/api/users": { roles: ["admin"] },
+  "/api/medical-records": { roles: ["admin", "vet"] },
+  "/api/appointments": { roles: ["admin", "vet", "assistant"] },
+  "/api/pets": { roles: ["admin", "vet", "assistant"] },
+  "/api/owners": { roles: ["admin", "vet", "assistant"] },
+  "/api/invoices": { roles: ["admin", "vet"] },
 }
 
-// Tipo para handlers autenticados
-export type AuthenticatedHandler = (request: NextRequest, context: AuthContext) => Promise<NextResponse>
-
-// Manejo centralizado de errores
-const createErrorResponse = (message: string, status: number) => {
-  console.error(`Auth Error (${status}):`, message)
-  return NextResponse.json({ error: message }, { status })
-}
-
-// Middleware de autenticación mejorado
-export function withAuth(handler: AuthenticatedHandler) {
-  return async (request: NextRequest): Promise<NextResponse> => {
-    try {
-      const authHeader = request.headers.get("authorization")
-
-      if (!authHeader || !authHeader.startsWith("Bearer ")) {
-        return createErrorResponse("Se requiere token de autorización", 401)
-      }
-
-      const token = authHeader.substring(7)
-
-      if (!token.trim()) {
-        return createErrorResponse("Token de autorización no válido", 401)
-      }
-
-      const user = verifyAccessToken(token)
-
-      if (!user) {
-        return createErrorResponse("Token no válido o caducado", 401)
-      }
-
-      // Crear contexto de autenticación
-      const authContext: AuthContext = { user }
-
-      return handler(request, authContext)
-    } catch (error) {
-      console.error("Error de middleware de autenticación:", error)
-      return createErrorResponse("Error en la autenticación", 401)
-    }
+const getDashboardRedirect = (role: string): string => {
+  switch (role) {
+    case "admin":
+      return "/dashboard/admin"
+    case "vet":
+      return "/dashboard/medical"
+    case "assistant":
+      return "/dashboard/appointments"
+    default:
+      return "/dashboard"
   }
 }
 
-// Middleware de autorización por roles
-export function withRole(allowedRoles: UserRole[]) {
-  return (handler: AuthenticatedHandler) =>
-    withAuth(async (request: NextRequest, context: AuthContext) => {
-      const { user } = context
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl
 
-      if (!allowedRoles.includes(user.role)) {
-        return createErrorResponse(`Acceso denegado. Funciones requeridas: ${allowedRoles.join(", ")}`, 403)
-      }
+  // Skip middleware for public routes
+  if (
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/api/auth/login") ||
+    pathname.startsWith("/api/auth/refresh") ||
+    pathname.startsWith("/login") ||
+    pathname === "/favicon.ico" ||
+    pathname.startsWith("/public")
+  ) {
+    return NextResponse.next()
+  }
 
-      return handler(request, context)
+  const token = extractTokenFromRequest(request) || request.cookies.get("auth-token")?.value
+
+  if (!token) {
+    // Redirect to login if no token
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 })
+    }
+    return NextResponse.redirect(new URL("/login", request.url))
+  }
+
+  const user = verifyToken(token)
+  if (!user) {
+    // Invalid token - redirect to login
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json({ error: "Invalid or expired token" }, { status: 401 })
+    }
+    const response = NextResponse.redirect(new URL("/login", request.url))
+    response.cookies.delete("auth-token")
+    return response
+  }
+
+  if (pathname === "/" || pathname === "/dashboard") {
+    const dashboardUrl = getDashboardRedirect(user.role)
+    return NextResponse.redirect(new URL(dashboardUrl, request.url))
+  }
+
+  const routeConfig = Object.entries(protectedRoutes).find(([route]) => pathname.startsWith(route))?.[1]
+
+  if (routeConfig && !routeConfig.roles.includes(user.role)) {
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json(
+        {
+          error: "Insufficient permissions",
+          required: routeConfig.roles,
+          current: user.role,
+        },
+        { status: 403 },
+      )
+    }
+
+    // Redirect to appropriate dashboard for unauthorized access
+    const dashboardUrl = getDashboardRedirect(user.role)
+    return NextResponse.redirect(new URL(dashboardUrl, request.url))
+  }
+
+  if (pathname.startsWith("/api/")) {
+    const requestHeaders = new Headers(request.headers)
+    requestHeaders.set("x-user-id", user.id.toString())
+    requestHeaders.set("x-user-role", user.role)
+    requestHeaders.set("x-user-email", user.email)
+
+    return NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
     })
+  }
+
+  return NextResponse.next()
 }
 
-// Middleware de autorización por permisos específicos
-export function withPermission(permissionCheck: (role: UserRole) => boolean) {
-  return (handler: AuthenticatedHandler) =>
-    withAuth(async (request: NextRequest, context: AuthContext) => {
-      const { user } = context
-
-      if (!permissionCheck(user.role)) {
-        return createErrorResponse("Permisos insuficientes", 403)
-      }
-
-      return handler(request, context)
-    })
+export const config = {
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public folder
+     */
+    "/((?!_next/static|_next/image|favicon.ico|public/).*)",
+  ],
 }
-
-// Shortcuts de middleware más legibles
-export const requireAdmin = withRole(["admin"])
-export const requireVetOrAdmin = withRole(["admin", "vet"])
-export const requireAnyRole = withRole(["admin", "vet", "assistant"])
-
-// Middlewares específicos por funcionalidad
-export const requireMedicalAccess = withPermission(permissions.canManageMedicalRecords)
-export const requireUserManagement = withPermission(permissions.canManageUsers)
-export const requireDeletePermission = withPermission(permissions.canDelete)

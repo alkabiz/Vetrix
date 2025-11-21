@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { withAuth } from "@/lib/middleware"
-import { generateTwoFactorSecret } from "@/lib/auth-enhanced"
+import { withAuth } from "@/lib/config/middleware"
+import { generateTwoFactorSecret } from "@/lib/auth/auth-enhanced"
 
 export const POST = withAuth(async (request: NextRequest, { user }) => {
   try {

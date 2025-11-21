@@ -1,8 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { getDatabase, type MedicalRecord } from "@/lib/database"
-import { requireMedicalAccess, requireVetOrAdmin } from "@/lib/middleware"
-import { medicalRecordSchema, validateRequest, validateIdParam } from "@/lib/validation"
-import { handleApiError, logRequest, NotFoundError } from "@/lib/error-handler"
+import { getDatabase, type MedicalRecord } from "@/lib/database/database"
+import { requireMedicalAccess, requireVetOrAdmin } from "@/lib/config/middleware"
+import { medicalRecordSchema, validateRequest, validateIdParam } from "@/lib/utils/validation/validators"
+import { handleApiError, logRequest, NotFoundError } from "@/lib/utils/error-handler"
 
 export const GET = requireMedicalAccess(
   async (request: NextRequest, context, { params }: { params: { id: string } }) => {

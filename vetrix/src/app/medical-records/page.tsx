@@ -1,15 +1,15 @@
 "use client"
 
 import { useState } from "react"
-import { DashboardLayout } from "@/components/dashboard-layout"
-import { DataTable } from "@/components/data-table"
-import { MedicalRecordForm } from "@/components/medical-record-form"
+import { DashboardLayout } from "@/components/layout/dashboard-layout"
+import { DataTable } from "@/components/ui/data-table"
+import { MedicalRecordForm } from "@/components/forms/medical-record/MedicalRecordForm"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
 import { FileText, Calendar, Heart, Stethoscope } from "lucide-react"
-import type { MedicalRecord, Pet, Appointment } from "@/lib/database"
-import { AuthWrapper } from "@/components/auth-wrapper"
+import type { MedicalRecord, Pet, Appointment } from "@/lib/database/database"
+import { AuthWrapper } from "@/components/auth/auth-wrapper"
 import { useAuth } from "@/contexts/auth-context"
 
 const mockRecords: MedicalRecord[] = [

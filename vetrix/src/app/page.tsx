@@ -1,12 +1,12 @@
 "use client"
 
-import { DashboardLayout } from "@/components/dashboard-layout"
+import { DashboardLayout } from "@/components/layout/dashboard-layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Users, Heart, Calendar, FileText, TrendingUp, Plus, ArrowUpRight, Activity, UserCog } from "lucide-react"
 import Link from "next/link"
-import { AuthWrapper } from "@/components/auth-wrapper"
+import { AuthWrapper } from "@/components/auth/auth-wrapper"
 import { useAuth } from "@/contexts/auth-context"
 
 export default function DashboardPage() {
@@ -43,9 +43,11 @@ export default function DashboardPage() {
       },
     ]
 
+    const actions = [...baseActions]
+
     // Add role-specific actions
     if (user.role === "admin") {
-      baseActions.push({
+      actions.push({
         href: "/users",
         icon: UserCog,
         title: "Administrar usuarios",
@@ -54,7 +56,7 @@ export default function DashboardPage() {
     }
 
     if (["admin", "vet"].includes(user.role)) {
-      baseActions.push({
+      actions.push({
         href: "/medical-records",
         icon: FileText,
         title: "Crear expediente médico",
@@ -62,7 +64,7 @@ export default function DashboardPage() {
       })
     }
 
-    return baseActions
+    return actions
   }
 
   return (
@@ -95,7 +97,8 @@ export default function DashboardPage() {
               <CardHeader>
                 <CardTitle className="text-blue-900">Panel de control del administrador</CardTitle>
                 <CardDescription className="text-blue-700">
-                  Tienes acceso completo a todas las funciones del sistema, incluyendo la administración de usuarios y la configuración del sistema.
+                  Tienes acceso completo a todas las funciones del sistema, incluyendo la administración de usuarios y
+                  la configuración del sistema.
                 </CardDescription>
               </CardHeader>
             </Card>

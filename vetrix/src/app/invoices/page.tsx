@@ -1,15 +1,15 @@
 "use client"
 
 import { useState } from "react"
-import { DashboardLayout } from "@/components/dashboard-layout"
-import { DataTable } from "@/components/data-table"
-import { InvoiceForm } from "@/components/invoice-form"
+import { DashboardLayout } from "@/components/layout/dashboard-layout"
+import { DataTable } from "@/components/ui/data-table"
+import { InvoiceForm } from "@/components/forms/invoice/InvoiceForm"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
 import { Receipt, DollarSign, Clock, CheckCircle, AlertCircle } from "lucide-react"
-import type { Invoice, Owner, Pet, Appointment } from "@/lib/database"
+import type { Invoice, Owner, Pet, Appointment } from "@/lib/database/database"
 
 const mockInvoices: Invoice[] = [
   {

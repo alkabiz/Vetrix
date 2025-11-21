@@ -1,13 +1,13 @@
 "use client"
 
 import { useState } from "react"
-import { DashboardLayout } from "@/components/dashboard-layout"
-import { DataTable } from "@/components/data-table"
-import { OwnerForm } from "@/components/owner-form"
+import { DashboardLayout } from "@/components/layout/dashboard-layout"
+import { DataTable } from "@/components/ui/data-table"
+import { OwnerForm } from "@/components/forms/owner/OwnerForm"
 import { useToast } from "@/hooks/use-toast"
-import type { Owner } from "@/lib/database"
-import { AuthWrapper } from "@/components/auth-wrapper"
-import { ProtectedRoute } from "@/components/protected-route"
+import type { Owner } from "@/lib/database/database"
+import { AuthWrapper } from "@/components/auth/auth-wrapper"
+import { ProtectedRoute } from "@/components/auth/protected-route"
 import { useAuth } from "@/contexts/auth-context"
 
 const mockOwners: Owner[] = [

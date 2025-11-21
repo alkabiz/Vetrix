@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
-import { getDatabase, type MedicalRecord } from "@/lib/database"
-import { requireAnyRole, requireVetOrAdmin, type AuthenticatedRequest } from "@/lib/middleware"
+import { getDatabase, type MedicalRecord } from "@/lib/database/database"
+import { requireAnyRole, requireVetOrAdmin, type AuthenticatedRequest } from "@/lib/config/middleware"
 
 export const GET = requireAnyRole(async (request: AuthenticatedRequest) => {
   try {
