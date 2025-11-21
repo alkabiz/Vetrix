@@ -85,182 +85,130 @@ function getInitialState(pet?: Pet | null): PetFormState {
 }
 
 export function usePetForm({ pet, onSubmit }: UsePetFormProps): UsePetFormReturn {
-  const [state, dispatch] = useReducer(petFormReducer, getInitialState(pet))
-  const { validateForm, validateField: validateFieldSchema } = usePetFormValidation()
+  dispatch({ type: 'SET_FIELD', field, value })
+}, [])
 
-  const onSubmitRef = useRef(onSubmit)
-  onSubmitRef.current = onSubmit
+const validateField = useCallback((field: keyof PetFormData): boolean => {
+  const result = validateFieldSchema(field, state.formData[field])
 
-  const handleBasicInfoChange = useCallback(<K extends keyof PetFormData>(
-    field: K,
-    value: PetFormData[K]
-  ) => {
-    dispatch({ type: 'SET_FIELD', field, value })
-  }, [])
+  if (!result.success) {
+    dispatch({
+      type: 'SET_ERRORS',
+      errors: { ...state.errors, [field]: result.error }
+    })
+    return false
+  }
 
-  const handleBirthAgeChange = useCallback(<K extends keyof PetFormData>(
-    field: K,
-    value: PetFormData[K]
-  ) => {
-    dispatch({ type: 'SET_FIELD', field, value })
-  }, [])
+  if (state.errors[field]) {
+    const newErrors = { ...state.errors }
+    delete newErrors[field]
+    dispatch({ type: 'SET_ERRORS', errors: newErrors })
+  }
 
-  const handleIdentificationChange = useCallback(<K extends keyof PetFormData>(
-    field: K,
-    value: PetFormData[K]
-  ) => {
-    dispatch({ type: 'SET_FIELD', field, value })
-  }, [])
+  return true
+}, [state.formData, state.errors, validateFieldSchema])
 
-  const handleMedicalChange = useCallback(<K extends keyof PetFormData>(
-    field: K,
-    value: PetFormData[K]
-  ) => {
-    dispatch({ type: 'SET_FIELD', field, value })
-  }, [])
+const validateFormHandler = useCallback((): boolean => {
+  const validationResult = validateForm(state.formData)
 
-  const handleBehavioralChange = useCallback(<K extends keyof PetFormData>(
-    field: K,
-    value: PetFormData[K]
-  ) => {
-    dispatch({ type: 'SET_FIELD', field, value })
-  }, [])
+  if (!validationResult.success) {
+    dispatch({ type: 'SET_ERRORS', errors: validationResult.errors })
+    return false
+  }
 
-  const handleAcquisitionChange = useCallback(<K extends keyof PetFormData>(
-    field: K,
-    value: PetFormData[K]
-  ) => {
-    dispatch({ type: 'SET_FIELD', field, value })
-  }, [])
+  dispatch({ type: 'SET_ERRORS', errors: {} })
+  return true
+}, [state.formData, validateForm])
 
-  const handleFieldChange = useCallback(<K extends keyof PetFormData>(
-    field: K,
-    value: PetFormData[K]
-  ) => {
-    dispatch({ type: 'SET_FIELD', field, value })
-  }, [])
+const handleSubmit = useCallback(async (): Promise<void> => {
+  dispatch({ type: 'SET_SUBMITTING', isSubmitting: true })
 
-  const validateField = useCallback((field: keyof PetFormData): boolean => {
-    const result = validateFieldSchema(field, state.formData[field])
-
-    if (!result.success) {
-      dispatch({
-        type: 'SET_ERRORS',
-        errors: { ...state.errors, [field]: result.error }
-      })
-      return false
+  try {
+    if (!validateFormHandler()) {
+      throw new Error("Form validation failed")
     }
 
-    if (state.errors[field]) {
-      const newErrors = { ...state.errors }
-      delete newErrors[field]
-      dispatch({ type: 'SET_ERRORS', errors: newErrors })
-    }
+    const petData = transformFormDataToPet(state.formData)
+    await onSubmitRef.current(petData)
 
-    return true
-  }, [state.formData, state.errors, validateFieldSchema])
-
-  const validateFormHandler = useCallback((): boolean => {
-    const validationResult = validateForm(state.formData)
-
-    if (!validationResult.success) {
-      dispatch({ type: 'SET_ERRORS', errors: validationResult.errors })
-      return false
-    }
-
-    dispatch({ type: 'SET_ERRORS', errors: {} })
-    return true
-  }, [state.formData, validateForm])
-
-  const handleSubmit = useCallback(async (): Promise<void> => {
-    dispatch({ type: 'SET_SUBMITTING', isSubmitting: true })
-
-    try {
-      if (!validateFormHandler()) {
-        throw new Error("Form validation failed")
+    dispatch({ type: 'RESET_FORM', initialData: state.formData })
+  } catch (error) {
+    console.error("Form submission error:", error)
+    dispatch({
+      type: 'SET_ERRORS',
+      errors: {
+        submit: error instanceof Error ? error.message : "Failed to submit form"
       }
-
-      const petData = transformFormDataToPet(state.formData)
-      await onSubmitRef.current(petData)
-
-      dispatch({ type: 'RESET_FORM', initialData: state.formData })
-    } catch (error) {
-      console.error("Form submission error:", error)
-      dispatch({
-        type: 'SET_ERRORS',
-        errors: {
-          submit: error instanceof Error ? error.message : "Failed to submit form"
-        }
-      })
-      throw error
-    } finally {
-      dispatch({ type: 'SET_SUBMITTING', isSubmitting: false })
-    }
-  }, [state.formData, validateFormHandler])
-
-  const resetForm = useCallback(() => {
-    dispatch({ type: 'RESET_FORM', initialData: getInitialState(pet).formData })
-  }, [pet])
-
-  const generatePetNumber = useCallback((): string => {
-    return `PET${Date.now().toString().slice(-6)}`
-  }, [])
-
-  const initializeNewPet = useCallback(() => {
-    const petNumber = generatePetNumber()
-    const now = new Date().toISOString().split('T')[0]
-
-    dispatch({
-      type: 'SET_FIELD',
-      field: 'petNumber',
-      value: petNumber
     })
-    dispatch({
-      type: 'SET_FIELD',
-      field: 'acquisitionDate',
-      value: now
-    })
-  }, [generatePetNumber])
+    throw error
+  } finally {
+    dispatch({ type: 'SET_SUBMITTING', isSubmitting: false })
+  }
+}, [state.formData, validateFormHandler])
 
-  useEffect(() => {
-    if (!pet) {
-      initializeNewPet()
-    }
-  }, [pet, initializeNewPet])
+const resetForm = useCallback(() => {
+  dispatch({ type: 'RESET_FORM', initialData: getInitialState(pet).formData })
+}, [pet])
 
-  useEffect(() => {
-    if (state.formData.isSterilized) {
-      validateField('sterilizationDate')
-      validateField('sterilizationTypeId')
-    }
+const generatePetNumber = useCallback((): string => {
+  return `PET${Date.now().toString().slice(-6)}`
+}, [])
 
-    if (state.formData.microchipNumber) {
-      validateField('microchipDate')
-    }
+const initializeNewPet = useCallback(() => {
+  const petNumber = generatePetNumber()
+  const now = new Date().toISOString().split('T')[0]
 
-    if (state.formData.dateOfDeath) {
-      validateField('causeOfDeath')
-    }
-  }, [
-    state.formData.isSterilized,
+  dispatch({
+    type: 'SET_FIELD',
+    field: 'petNumber',
+    value: petNumber
+  })
+  dispatch({
+    type: 'SET_FIELD',
+    field: 'acquisitionDate',
+    value: now
+  })
+}, [generatePetNumber])
+
+useEffect(() => {
+  if (!pet) {
+    initializeNewPet()
+  }
+}, [pet, initializeNewPet])
+
+useEffect(() => {
+  if (state.formData.isSterilized) {
+    validateField('sterilizationDate')
+    validateField('sterilizationTypeId')
+  }
+
+  if (state.formData.microchipNumber) {
+    validateField('microchipDate')
+  }
+
+  if (state.formData.dateOfDeath) {
+    validateField('causeOfDeath')
+  }
+}, [
+  state.formData.isSterilized,
     case 'RESET_FORM':
       const initialData = action.initialData || DEFAULT_PET_FORM_VALUES
-  return {
-    formData: initialData,
-    errors: {},
-    isSubmitting: false,
-    isDirty: false,
-    originalData: initialData
-  }
+return {
+  formData: initialData,
+  errors: {},
+  isSubmitting: false,
+  isDirty: false,
+  originalData: initialData
+}
 
     case 'MARK_DIRTY':
-  return {
-    ...state,
-    isDirty: true
-  }
+return {
+  ...state,
+  isDirty: true
+}
 
     default:
-  return state
+return state
 }
 }
 
