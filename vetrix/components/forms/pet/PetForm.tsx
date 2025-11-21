@@ -33,7 +33,7 @@ export function PetForm({
   onSubmit
 }: PetFormProps) {
   const { toast } = useToast()
-  
+
   const {
     formData,
     errors,
@@ -48,7 +48,7 @@ export function PetForm({
   const {
     speciesOptions,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    breedOptions,
+    filteredBreeds,
     colorOptions,
     sexOptions,
     sterilizationTypeOptions
@@ -70,7 +70,7 @@ export function PetForm({
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!validateForm()) {
       toast({
         title: "Validation Error",
@@ -105,8 +105,8 @@ export function PetForm({
             {pet ? "Edit Pet" : "Add New Pet"}
           </DialogTitle>
           <DialogDescription>
-            {pet 
-              ? "Update the pet's information below." 
+            {pet
+              ? "Update the pet's information below."
               : "Enter the new pet's information below."}
           </DialogDescription>
         </DialogHeader>
@@ -204,20 +204,20 @@ export function PetForm({
             </div>
 
             <div className="flex gap-2">
-              <Button 
-                type="button" 
-                variant="outline" 
+              <Button
+                type="button"
+                variant="outline"
                 onClick={() => onOpenChange(false)}
                 disabled={isSubmitting}
               >
                 Cancel
               </Button>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 disabled={isSubmitting}
               >
-                {isSubmitting 
-                  ? "Saving..." 
+                {isSubmitting
+                  ? "Saving..."
                   : pet ? "Update Pet" : "Create Pet"}
               </Button>
             </div>
