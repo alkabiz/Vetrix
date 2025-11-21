@@ -29,10 +29,10 @@ interface InvoiceFormProps {
 
 export function InvoiceForm({ invoice, owners, pets, appointments, open, onOpenChange, onSubmit }: InvoiceFormProps) {
   const [formData, setFormData] = useState({
-    owner_id: "",
-    pet_id: "",
-    appointment_id: "",
-    invoice_date: "",
+    ownerId: "",
+    petId: "",
+    appointmentId: "",
+    invoiceDate: "",
     status: "pending" as "pending" | "paid" | "overdue",
     notes: "",
   })
@@ -44,17 +44,26 @@ export function InvoiceForm({ invoice, owners, pets, appointments, open, onOpenC
   useEffect(() => {
     if (invoice) {
       setFormData({
-        owner_id: String(invoice.owner_id),
-        pet_id: String(invoice.pet_id),
-        appointment_id: invoice.appointment_id ? String(invoice.appointment_id) : "",
-        invoice_date: invoice.invoice_date,
+        ownerId: String(invoice.ownerId),
+        petId: String(invoice.petId),
+        appointmentId: invoice.appointmentId ? String(invoice.appointmentId) : "",
+        invoiceDate: invoice.invoiceDate,
         status: invoice.status,
         notes: invoice.notes || "",
       })
 
       // Parse services from JSON string
       try {
-        const parsedServices = JSON.parse(invoice.services) as string[]
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const servicesData = (invoice as any).services
+        let parsedServices: string[] = []
+
+        if (typeof servicesData === 'string') {
+          parsedServices = JSON.parse(servicesData)
+        } else if (Array.isArray(servicesData)) {
+          parsedServices = servicesData
+        }
+
         const serviceItems = parsedServices.map((service) => {
           const match = service.match(/^(.+): \$(\d+(?:\.\d{2})?)$/)
           if (match) {
@@ -70,10 +79,10 @@ export function InvoiceForm({ invoice, owners, pets, appointments, open, onOpenC
       // Set today's date as default
       const today = new Date().toISOString().split("T")[0]
       setFormData({
-        owner_id: "",
-        pet_id: "",
-        appointment_id: "",
-        invoice_date: today,
+        ownerId: "",
+        petId: "",
+        appointmentId: "",
+        invoiceDate: today,
         status: "pending",
         notes: "",
       })
@@ -82,34 +91,34 @@ export function InvoiceForm({ invoice, owners, pets, appointments, open, onOpenC
   }, [invoice, open])
 
   useEffect(() => {
-    if (formData.owner_id) {
-      const ownerPets = pets.filter((pet) => String(pet.owner_id) === formData.owner_id)
+    if (formData.ownerId) {
+      const ownerPets = pets.filter((pet) => String(pet.ownerId) === formData.ownerId)
       setFilteredPets(ownerPets)
 
       // Reset pet selection if current pet doesn't belong to selected owner
-      if (formData.pet_id && !ownerPets.find((pet) => String(pet.id) === formData.pet_id)) {
-        setFormData((prev) => ({ ...prev, pet_id: "", appointment_id: "" }))
+      if (formData.petId && !ownerPets.find((pet) => String(pet.id) === formData.petId)) {
+        setFormData((prev) => ({ ...prev, petId: "", appointmentId: "" }))
       }
     } else {
       setFilteredPets([])
-      setFormData((prev) => ({ ...prev, pet_id: "", appointment_id: "" }))
+      setFormData((prev) => ({ ...prev, petId: "", appointmentId: "" }))
     }
-  }, [formData.owner_id, pets])
+  }, [formData.ownerId, pets])
 
   useEffect(() => {
-    if (formData.pet_id) {
-      const petAppointments = appointments.filter((appointment) => String(appointment.pet_id) === formData.pet_id)
+    if (formData.petId) {
+      const petAppointments = appointments.filter((appointment) => String(appointment.petId) === formData.petId)
       setFilteredAppointments(petAppointments)
 
       // Reset appointment selection if current appointment doesn't belong to selected pet
-      if (formData.appointment_id && !petAppointments.find((apt) => String(apt.id) === formData.appointment_id)) {
-        setFormData((prev) => ({ ...prev, appointment_id: "" }))
+      if (formData.appointmentId && !petAppointments.find((apt) => String(apt.id) === formData.appointmentId)) {
+        setFormData((prev) => ({ ...prev, appointmentId: "" }))
       }
     } else {
       setFilteredAppointments([])
-      setFormData((prev) => ({ ...prev, appointment_id: "" }))
+      setFormData((prev) => ({ ...prev, appointmentId: "" }))
     }
-  }, [formData.pet_id, appointments])
+  }, [formData.petId, appointments])
 
   const addService = () => {
     setServices([...services, { description: "", amount: 0 }])
@@ -145,13 +154,14 @@ export function InvoiceForm({ invoice, owners, pets, appointments, open, onOpenC
         .filter((service) => service.description.trim() && service.amount > 0)
         .map((service) => `${service.description}: $${service.amount.toFixed(2)}`)
 
-      const invoiceData = {
-        owner_id: Number(formData.owner_id),
-        pet_id: Number(formData.pet_id),
-        appointment_id: formData.appointment_id ? Number(formData.appointment_id) : undefined,
-        invoice_date: formData.invoice_date,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const invoiceData: any = {
+        ownerId: Number(formData.ownerId),
+        petId: Number(formData.petId),
+        appointmentId: formData.appointmentId ? Number(formData.appointmentId) : undefined,
+        invoiceDate: formData.invoiceDate,
         services: JSON.stringify(formattedServices),
-        total_amount: calculateTotal(),
+        totalAmount: calculateTotal(),
         status: formData.status,
         notes: formData.notes || undefined,
       }
@@ -166,13 +176,26 @@ export function InvoiceForm({ invoice, owners, pets, appointments, open, onOpenC
   }
 
   const formatAppointmentOption = (appointment: Appointment) => {
-    const date = new Date(appointment.appointment_date).toLocaleDateString()
-    const time = new Date(`2000-01-01T${appointment.appointment_time}`).toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
-    })
-    return `${date} at ${time} (${appointment.status})`
+    const date = new Date(appointment.appointmentDate).toLocaleDateString()
+    // Assuming appointmentTime might not be on the interface based on previous file read, 
+    // but if it is, we use it. If not, we just show date.
+    // The previous code used appointment.appointment_time, let's check if we should keep it or not.
+    // The interface showed appointmentDate but not explicit time field in the snippet I saw?
+    // Wait, let's look at the Appointment interface again.
+    // It has appointmentDatetime: Date and appointmentDate: string.
+    // It doesn't seem to have appointment_time.
+    // I will use appointmentDatetime for time if available.
+
+    let timeString = ""
+    if (appointment.appointmentDatetime) {
+      timeString = new Date(appointment.appointmentDatetime).toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      })
+    }
+
+    return `${date} ${timeString ? "at " + timeString : ""} (${appointment.statusId})`
   }
 
   return (
@@ -187,10 +210,10 @@ export function InvoiceForm({ invoice, owners, pets, appointments, open, onOpenC
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="owner_id">Propietario *</Label>
+              <Label htmlFor="ownerId">Propietario *</Label>
               <Select
-                value={formData.owner_id}
-                onValueChange={(value) => setFormData({ ...formData, owner_id: value })}
+                value={formData.ownerId}
+                onValueChange={(value) => setFormData({ ...formData, ownerId: value })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select an owner" />
@@ -198,7 +221,7 @@ export function InvoiceForm({ invoice, owners, pets, appointments, open, onOpenC
                 <SelectContent>
                   {owners.map((owner) => (
                     <SelectItem key={owner.id} value={String(owner.id)}>
-                      {owner.name}
+                      {owner.firstName} {owner.lastName}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -206,19 +229,19 @@ export function InvoiceForm({ invoice, owners, pets, appointments, open, onOpenC
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="pet_id">Mascota *</Label>
+              <Label htmlFor="petId">Mascota *</Label>
               <Select
-                value={formData.pet_id}
-                onValueChange={(value) => setFormData({ ...formData, pet_id: value })}
-                disabled={!formData.owner_id}
+                value={formData.petId}
+                onValueChange={(value) => setFormData({ ...formData, petId: value })}
+                disabled={!formData.ownerId}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder={formData.owner_id ? "Selecciona una mascota" : "Seleccione primero un propietario."} />
+                  <SelectValue placeholder={formData.ownerId ? "Selecciona una mascota" : "Seleccione primero un propietario."} />
                 </SelectTrigger>
                 <SelectContent>
                   {filteredPets.map((pet) => (
                     <SelectItem key={pet.id} value={String(pet.id)}>
-                      {pet.name} ({pet.speciesId})
+                      {pet.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -227,13 +250,13 @@ export function InvoiceForm({ invoice, owners, pets, appointments, open, onOpenC
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="appointment_id">Cita relacionada (opcional)</Label>
+            <Label htmlFor="appointmentId">Cita relacionada (opcional)</Label>
             <Select
-              value={formData.appointment_id}
-              onValueChange={(value) => setFormData({ ...formData, appointment_id: value })}
+              value={formData.appointmentId}
+              onValueChange={(value) => setFormData({ ...formData, appointmentId: value })}
             >
               <SelectTrigger>
-                <SelectValue placeholder={formData.pet_id ? "Selecciona una cita" : "Seleccione primero una mascota."} />
+                <SelectValue placeholder={formData.petId ? "Selecciona una cita" : "Seleccione primero una mascota."} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">Sin cita previa</SelectItem>
@@ -248,12 +271,12 @@ export function InvoiceForm({ invoice, owners, pets, appointments, open, onOpenC
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="invoice_date">Fecha de la factura *</Label>
+              <Label htmlFor="invoiceDate">Fecha de la factura *</Label>
               <Input
-                id="invoice_date"
+                id="invoiceDate"
                 type="date"
-                value={formData.invoice_date}
-                onChange={(e) => setFormData({ ...formData, invoice_date: e.target.value })}
+                value={formData.invoiceDate}
+                onChange={(e) => setFormData({ ...formData, invoiceDate: e.target.value })}
                 required
               />
             </div>
@@ -342,7 +365,7 @@ export function InvoiceForm({ invoice, owners, pets, appointments, open, onOpenC
             </Button>
             <Button
               type="submit"
-              disabled={isSubmitting || !formData.owner_id || !formData.pet_id || calculateTotal() === 0}
+              disabled={isSubmitting || !formData.ownerId || !formData.petId || calculateTotal() === 0}
             >
               {isSubmitting ? "Guardando..." : invoice ? "Actualizar" : "Crear"}
             </Button>
