@@ -3,7 +3,7 @@
 import React from "react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils/index"
 import { shallowCompareProps } from "../utils/performance-utils"
 
 export interface FormFieldProps {
