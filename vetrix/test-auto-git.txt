@@ -1,3 +1,0 @@
-This is a test file for auto-git agent.
-Third attempt.
-Modified content.
