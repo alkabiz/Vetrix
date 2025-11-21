@@ -140,7 +140,7 @@ export interface IdentificationSectionProps {
 export interface MedicalInformationSectionProps {
   formData: MedicalInformationData
   errors: PetFormErrors
-  sterilizationTypes: SterilizationType[]
+  sterilizationTypes: SterilizationTypeOption[]
   onFieldChange: <K extends keyof MedicalInformationData>(
     field: K,
     value: MedicalInformationData[K]
