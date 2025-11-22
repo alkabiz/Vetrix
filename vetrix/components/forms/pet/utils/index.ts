@@ -43,4 +43,4 @@ export {
   PET_FORM_CONFIG,
   FIELD_LABELS,
   FIELD_PLACEHOLDERS
-} from "./form-defaults"
+} from "../types/form-data.types"
