@@ -42,130 +42,6 @@ const BasicInformationSectionComponent: React.FC<BasicInformationSectionProps> =
             onChange={(value) => onFieldChange("petNumber", value)}
             error={errors.petNumber}
             required
-            disabled={disabled}
-            aria-required="true"
-            aria-invalid={!!errors.petNumber}
-            aria-describedby={errors.petNumber ? "petNumber-error" : undefined}
-          />
-
-          <FormSelect
-            label="Owner *"
-            name="ownerId"
-            value={String(formData.ownerId)}
-            onValueChange={(value) => onFieldChange("ownerId", value === "" ? "" : Number(value))}
-            options={owners.map(owner => ({
-              value: String(owner.id),
-              label: `${owner.firstName} ${owner.lastName}`
-            }))}
-            error={errors.ownerId}
-            required
-            disabled={disabled}
-            placeholder="Select an owner"
-            aria-required="true"
-            aria-invalid={!!errors.ownerId}
-          />
-        </div>
-
-        <FormField
-          label="Pet Name *"
-          name="name"
-          value={formData.name}
-          onChange={(value) => onFieldChange("name", value)}
-          error={errors.name}
-          required
-          disabled={disabled}
-          placeholder="Enter pet's name"
-          maxLength={50}
-          aria-required="true"
-          aria-invalid={!!errors.name}
-        />
-
-        <div className="grid grid-cols-3 gap-4">
-          <FormSelect
-            label="Species *"
-            name="speciesId"
-            value={String(formData.speciesId)}
-            onValueChange={handleSpeciesChange}
-            options={species.map(s => ({
-              value: String(s.id),
-              label: s.name
-            }))}
-            error={errors.speciesId}
-            required
-            disabled={disabled}
-            placeholder="Select species"
-            aria-required="true"
-            aria-invalid={!!errors.speciesId}
-          />
-
-          <FormSelect
-            label="Breed"
-            name="breedId"
-            value={String(formData.breedId)}
-            onValueChange={(value) => onFieldChange("breedId", value === "" ? "" : Number(value))}
-            options={breeds.map(b => ({
-              value: String(b.id),
-              label: b.name
-            }))}
-            error={errors.breedId}
-            disabled={!formData.speciesId || disabled}
-            placeholder={formData.speciesId ? "Select breed" : "Select species first"}
-            aria-invalid={!!errors.breedId}
-          />
-
-          <FormSelect
-            label="Sex *"
-            name="sexId"
-            value={String(formData.sexId)}
-            onValueChange={(value) => onFieldChange("sexId", value === "" ? "" : Number(value))}
-            options={sexes.map(s => ({
-              value: String(s.id),
-              label: s.name
-            }))}
-            error={errors.sexId}
-            required
-            disabled={disabled}
-            placeholder="Select sex"
-            aria-required="true"
-            aria-invalid={!!errors.sexId}
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <FormSelect
-            label="Primary Color"
-            name="primaryColorId"
-            value={String(formData.primaryColorId)}
-            onValueChange={(value) => onFieldChange("primaryColorId", value === "" ? "" : Number(value))}
-            options={colors.map(c => ({
-              value: String(c.id),
-              label: c.name
-            }))}
-            error={errors.primaryColorId}
-            disabled={disabled}
-            placeholder="Select color"
-            aria-invalid={!!errors.primaryColorId}
-          />
-
-          <FormSelect
-            label="Secondary Color"
-            name="secondaryColorId"
-            value={String(formData.secondaryColorId)}
-            onValueChange={(value) => onFieldChange("secondaryColorId", value === "" ? "" : Number(value))}
-            options={colors.map(c => ({
-              value: String(c.id),
-              label: c.name
-            }))}
-            error={errors.secondaryColorId}
-            disabled={disabled}
-            placeholder="Select color"
-            aria-invalid={!!errors.secondaryColorId}
-          />
-        </div>
-
-        {/* Error summary for the section */}
-        {(errors.petNumber || errors.ownerId || errors.name || errors.speciesId || errors.sexId) && (
-          <div
             className="p-3 border border-destructive/20 bg-destructive/10 rounded-md"
             role="alert"
             aria-live="polite"
@@ -180,7 +56,7 @@ const BasicInformationSectionComponent: React.FC<BasicInformationSectionProps> =
               {errors.speciesId && <li>Species: {errors.speciesId}</li>}
               {errors.sexId && <li>Sex: {errors.sexId}</li>}
             </ul>
-          </div>
+        </div>
         )}
       </CardContent>
     </Card>
