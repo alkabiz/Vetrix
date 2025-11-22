@@ -3,11 +3,6 @@
 import React from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { FormField } from "../fields/FormField"
-"use client"
-
-import React from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { FormField } from "../fields/FormField"
 import { FormDatePicker } from "../fields/FormDatePicker"
 import { FormSelect } from "../fields/FormSelect"
 import { FormTextarea } from "../fields/FormTextarea"
@@ -67,7 +62,7 @@ export const MedicalInformationSection = React.memo<MedicalInformationSectionPro
                 label="Sterilization Type *"
                 name="sterilizationTypeId"
                 value={String(formData.sterilizationTypeId)}
-                onValueChange={(value) => onFieldChange("sterilizationTypeId", value === "" ? "" : Number(value))}
+                onChange={(value) => onFieldChange("sterilizationTypeId", value === "" ? "" : Number(value))}
                 options={sterilizationTypes.map(st => ({
                   value: String(st.id),
                   label: st.description
