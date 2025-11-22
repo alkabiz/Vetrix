@@ -4,17 +4,17 @@ import React from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { FormTextarea } from "../fields/FormTextarea"
 import type { BehavioralAndCareSectionProps } from "../types/PetForm.types"
-import { areSectionPropsEqual } from "../types/section.types"
+import { createSectionPropsComparator, MEMO_CONFIG } from "../utils/performance-utils"
+
+const CharacterCounter = ({ value, maxLength }: { value: string; maxLength: number }) => (
+  <div className="text-xs text-muted-foreground text-right">
+    {value.length}/{maxLength}
+  </div>
+)
 
 export const BehavioralAndCareSection = React.memo<BehavioralAndCareSectionProps>(
-  ({ formData, errors, onFieldChange }) => {
+  ({ formData, errors, onFieldChange, disabled = false }) => {
     const MAX_LENGTH = 1000
-
-    const CharacterCounter = ({ value, maxLength }: { value: string; maxLength: number }) => (
-      <div className="text-xs text-muted-foreground text-right">
-        {value.length}/{maxLength}
-      </div>
-    )
 
     return (
       <Card>
@@ -32,11 +32,12 @@ export const BehavioralAndCareSection = React.memo<BehavioralAndCareSectionProps
               placeholder="Temperament, behavioral issues, training notes..."
               maxLength={MAX_LENGTH}
               rows={3}
+              disabled={disabled}
               aria-describedby="behavioral-notes-counter"
             />
-            <CharacterCounter 
-              value={formData.behavioralNotes} 
-              maxLength={MAX_LENGTH} 
+            <CharacterCounter
+              value={formData.behavioralNotes}
+              maxLength={MAX_LENGTH}
             />
           </div>
 
@@ -50,11 +51,12 @@ export const BehavioralAndCareSection = React.memo<BehavioralAndCareSectionProps
               placeholder="Exercise needs, activity level, restrictions..."
               maxLength={MAX_LENGTH}
               rows={3}
+              disabled={disabled}
               aria-describedby="exercise-requirements-counter"
             />
-            <CharacterCounter 
-              value={formData.exerciseRequirements} 
-              maxLength={MAX_LENGTH} 
+            <CharacterCounter
+              value={formData.exerciseRequirements}
+              maxLength={MAX_LENGTH}
             />
           </div>
 
@@ -73,7 +75,7 @@ export const BehavioralAndCareSection = React.memo<BehavioralAndCareSectionProps
       </Card>
     )
   },
-  areSectionPropsEqual
+  createSectionPropsComparator(MEMO_CONFIG.BEHAVIORAL_FIELDS)
 )
 
 BehavioralAndCareSection.displayName = "BehavioralAndCareSection"
