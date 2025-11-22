@@ -80,33 +80,17 @@ const BasicInformationSectionComponent: React.FC<BasicInformationSectionProps> =
                     label: b.name
                 label: s.name
                   }))
-                }
-              error={ errors.sexId }
-              required
-              disabled={ disabled }
-              placeholder="Select sex"
-              aria- required= "true"
-              aria - invalid= {!!errors.sexId} onChange={function (): void {
+              onValueChange={(value) => onFieldChange("primaryColorId", value === "" ? "" : Number(value))}
+            options={colors.map(c => ({
+              value: String(c.id),
+              label: c.name
+            }))}
+            error={errors.primaryColorId}
+            disabled={disabled}
+            placeholder="Select color"
+            aria-invalid={!!errors.primaryColorId} onChange={function (): void {
               throw new Error("Function not implemented.")
             }} />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <FormSelect
-              label="Primary Color"
-              name="primaryColorId"
-              value={String(formData.primaryColorId)}
-              onValueChange={(value) => onFieldChange("primaryColorId", value === "" ? "" : Number(value))}
-              options={colors.map(c => ({
-                value: String(c.id),
-                label: c.name
-              }))}
-              error={errors.primaryColorId}
-              disabled={disabled}
-              placeholder="Select color"
-              aria-invalid={!!errors.primaryColorId} onChange={function (): void {
-                throw new Error("Function not implemented.")
-              }} />
 
             <FormSelect
               label="Secondary Color"
