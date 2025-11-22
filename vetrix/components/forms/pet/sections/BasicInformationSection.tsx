@@ -82,25 +82,8 @@ const BasicInformationSectionComponent: React.FC<BasicInformationSectionProps> =
                   }))
               onValueChange={(value) => onFieldChange("primaryColorId", value === "" ? "" : Number(value))}
             options={colors.map(c => ({
-              value: String(c.id),
-              label: c.name
-            }))}
-            error={errors.primaryColorId}
-            disabled={disabled}
-            placeholder="Select color"
-            aria-invalid={!!errors.primaryColorId} onChange={function (): void {
-              throw new Error("Function not implemented.")
-            }} />
-
-            <FormSelect
-              label="Secondary Color"
-              name="secondaryColorId"
-              value={String(formData.secondaryColorId)}
-              onValueChange={(value) => onFieldChange("secondaryColorId", value === "" ? "" : Number(value))}
-              options={colors.map(c => ({
-                role="alert"
-            aria- live= "polite"
-                >
+              aria- live= "polite"
+              >
             <h4 className="text-sm font-medium text-destructive mb-1">
               Please fix the following errors:
             </h4>
