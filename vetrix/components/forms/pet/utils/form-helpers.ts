@@ -1,5 +1,5 @@
 import type { PetFormData } from "../types/PetForm.types"
-import { DEFAULT_PET_FORM_VALUES } from "../utils/form-defaults"
+import { DEFAULT_PET_FORM_VALUES } from "../types/form-data.types"
 import type { Pet } from "@/lib/database/database"
 
 /**
@@ -17,7 +17,7 @@ export function generatePetNumber(): string {
 export function getInitialFormData(): PetFormData {
   const petNumber = generatePetNumber()
   const today = new Date().toISOString().split('T')[0]
-  
+
   return {
     ...DEFAULT_PET_FORM_VALUES,
     petNumber,
@@ -68,7 +68,7 @@ export function hasFormChanges(current: PetFormData, original: PetFormData): boo
   // Simple deep comparison for form data
   const currentJson = JSON.stringify(normalizeFormData(current))
   const originalJson = JSON.stringify(normalizeFormData(original))
-  
+
   return currentJson !== originalJson
 }
 
@@ -77,7 +77,7 @@ export function hasFormChanges(current: PetFormData, original: PetFormData): boo
  */
 export function normalizeFormData(formData: PetFormData): Partial<PetFormData> {
   const normalized = { ...formData }
-  
+
   // Convert empty strings to null for optional fields
   const optionalFields: (keyof PetFormData)[] = [
     'breedId', 'primaryColorId', 'secondaryColorId', 'microchipNumber',
@@ -86,13 +86,13 @@ export function normalizeFormData(formData: PetFormData): Partial<PetFormData> {
     'specialNeeds', 'behavioralNotes', 'dietaryRestrictions', 'exerciseRequirements',
     'acquisitionDate', 'acquisitionSource', 'previousOwnerInfo'
   ]
-  
+
   optionalFields.forEach(field => {
     if (normalized[field] === "") {
       (normalized[field] as any) = null
     }
   })
-  
+
   return normalized
 }
 
@@ -104,14 +104,14 @@ export function validateRequiredFields(formData: PetFormData): string[] {
   const requiredFields: (keyof PetFormData)[] = [
     'petNumber', 'ownerId', 'name', 'speciesId', 'sexId'
   ]
-  
+
   requiredFields.forEach(field => {
     const value = formData[field]
     if (value === "" || value === null || value === undefined) {
       errors.push(`${field} is required`)
     }
   })
-  
+
   return errors
 }
 
@@ -119,29 +119,29 @@ export function validateRequiredFields(formData: PetFormData): string[] {
  * Get field display value for summary or preview
  */
 export function getFieldDisplayValue(
-  field: keyof PetFormData, 
-  value: any, 
+  field: keyof PetFormData,
+  value: any,
   options?: { [key: string]: string }
 ): string {
   if (value === "" || value === null || value === undefined) {
     return "Not specified"
   }
-  
+
   // Handle boolean values
   if (typeof value === 'boolean') {
     return value ? 'Yes' : 'No'
   }
-  
+
   // Handle date values
   if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
     return new Date(value).toLocaleDateString()
   }
-  
+
   // Handle options (like species, breed, etc.)
   if (options && options[value]) {
     return options[value]
   }
-  
+
   return String(value)
 }
 
