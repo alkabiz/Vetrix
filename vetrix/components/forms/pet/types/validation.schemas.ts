@@ -123,7 +123,7 @@ export const petAcquisitionSchema = z.object({
 })
 
 // Complete Form Schema
-const petFormBaseSchema = petBasicInfoSchema
+export const petFormBaseSchema = petBasicInfoSchema
   .merge(petBirthAndAgeBaseSchema)
   .merge(petIdentificationBaseSchema)
   .merge(petMedicalInfoBaseSchema)
