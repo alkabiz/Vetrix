@@ -74,31 +74,19 @@ const BasicInformationSectionComponent: React.FC<BasicInformationSectionProps> =
               options={species.map(s => ({
                 value: String(s.id),
                 label: s.name
-              }))}
-              error={errors.speciesId}
-              required
-              disabled={disabled}
-              placeholder="Select species"
-              aria-required="true"
-              aria-invalid={!!errors.speciesId} onChange={function (): void {
-                throw new Error("Function not implemented.")
-              }} />
-
-            <FormSelect
-              label="Breed"
-              name="breedId"
-              value={String(formData.breedId)}
-              onValueChange={(value) => onFieldChange("breedId", value === "" ? "" : Number(value))}
-              options={breeds.map(b => ({
-                value: String(b.id),
-                label: b.name
-              }))}
-              error={errors.breedId}
-              disabled={!formData.speciesId || disabled}
-              placeholder={formData.speciesId ? "Select breed" : "Select species first"}
-              aria-invalid={!!errors.breedId} onChange={function (): void {
-                throw new Error("Function not implemented.")
-              }} />
+              options={
+                  breeds.map(b => ({
+                    value: String(b.id),
+                    label: b.name
+                  }))
+                }
+              error={ errors.breedId }
+              disabled={!formData.speciesId || disabled
+              }
+              placeholder = { formData.speciesId ? "Select breed" : "Select species first" }
+              aria - invalid= {!!errors.breedId} onChange={function (): void {
+              throw new Error("Function not implemented.")
+            }} />
 
             <FormSelect
               label="Sex *"
