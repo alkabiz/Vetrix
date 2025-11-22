@@ -103,16 +103,32 @@ export function usePetForm({ pet, onSubmit }: UsePetFormProps): UsePetFormReturn
 
     if (!result.success) {
       dispatch({
-        const validationResult = validateForm(state.formData)
+        type: 'SET_ERRORS',
+        errors: { ...state.errors, [field]: result.error }
+      })
+      return false
+    }
 
-    if(!validationResult.success) {
-        dispatch({ type: 'SET_ERRORS', errors: validationResult.errors })
-        return false
-      }
+    if (state.errors[field]) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { [field]: _, ...restErrors } = state.errors
+      dispatch({ type: 'SET_ERRORS', errors: restErrors })
+    }
 
-      dispatch({ type: 'SET_ERRORS', errors: {} })
-      return true
-    }, [state.formData, validateForm])
+    return true
+  }, [state.formData, state.errors, validateFieldSchema])
+
+  const validateFormHandler = useCallback((): boolean => {
+    const validationResult = validateForm(state.formData)
+
+    if (!validationResult.success) {
+      dispatch({ type: 'SET_ERRORS', errors: validationResult.errors })
+      return false
+    }
+
+    dispatch({ type: 'SET_ERRORS', errors: {} })
+    return true
+  }, [state.formData, validateForm])
 
   const handleSubmit = useCallback(async (): Promise<void> => {
     dispatch({ type: 'SET_SUBMITTING', isSubmitting: true })
