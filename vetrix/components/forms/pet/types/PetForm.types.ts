@@ -91,27 +91,9 @@ export type BehavioralAndCareData = Pick<
   "behavioralNotes" | "exerciseRequirements"
 >
 
-export type AcquisitionInformationData = Pick<
-  PetFormData,
-  "acquisitionDate" | "acquisitionSource" | "previousOwnerInfo"
->
-
-// Form validation errors
-export type PetFormErrors = {
-  [K in keyof PetFormData]?: string
-  scientificName?: string
-}
-
-export interface BreedOption {
-  id: number
-  name: string
-  speciesId: number
-}
-
-export interface ColorOption {
-  id: number
-  name: string
-  hexCode?: string
+id: number
+name: string
+hexCode ?: string
 }
 
 export interface SexOption {
