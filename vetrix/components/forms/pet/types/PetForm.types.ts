@@ -69,11 +69,33 @@ export type BirthAndAgeData = Pick<
 export type IdentificationData = Pick<
   PetFormData,
   | "microchipNumber"
+  | "microchipDate"
+  | "microchipLocation"
+  | "tattooNumber"
+  | "registrationNumber"
+>
+
+export type MedicalInformationData = Pick<
+  PetFormData,
+  | "isSterilized"
+  | "sterilizationDate"
+  | "sterilizationTypeId"
+  | "specialNeeds"
+  | "dietaryRestrictions"
+  | "dateOfDeath"
+  | "causeOfDeath"
+  | "dateOfBirth"
+>
+
+export type BehavioralAndCareData = Pick<
+  PetFormData,
+  "behavioralNotes" | "exerciseRequirements"
+>
 
 export type AcquisitionInformationData = Pick<
-    PetFormData,
-    "acquisitionDate" | "acquisitionSource" | "previousOwnerInfo"
-  >
+  PetFormData,
+  "acquisitionDate" | "acquisitionSource" | "previousOwnerInfo"
+>
 
 // Form validation errors
 export type PetFormErrors = {
