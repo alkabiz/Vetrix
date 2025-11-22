@@ -25,29 +25,59 @@ export function usePetFormValidation(): UsePetFormValidationReturn {
       errors[path] = error.message
     })
 
-  }
+    return { success: false, errors }
+  }, [])
+
+  // Validate individual field
+  const validateField = useCallback((field: keyof PetFormData, value: unknown): { success: boolean; error?: string } => {
+    try {
+      // Create a schema that only validates the specific field
+      // We use pick to extract just the field we want to validate
+      const fieldSchema = petFormSchema.pick({ [field]: true } as Record<keyof PetFormData, true>)
+      const result = fieldSchema.safeParse({ [field]: value })
+
+      if (!result.success) {
+        return {
+          success: false,
+          error: result.error.errors[0]?.message || `Invalid ${field}`
+        }
       }
 
-return { success: true }
+      return { success: true }
     } catch (error) {
-  console.error(`Validation error for ${field}:`, error)
-  return {
-    success: false,
-    error: `Validation error for ${field}`
-  }
-}
+      console.error(`Validation error for ${field}:`, error)
+      return {
+        success: false,
+        error: `Validation error for ${field}`
+      }
+    }
   }, [])
-const path = error.path.join('.') as keyof PetFormData
-errors[path] = error.message
-    })
+
+  // Validate form section (subset of fields)
+  const validateSection = useCallback((fields: (keyof PetFormData)[], data: PetFormData): { success: boolean; errors: PetFormErrors } => {
+    const errors: PetFormErrors = {}
+    let isValid = true
+
+    // Create a schema for the section by picking the fields
+    const pickMask = fields.reduce((acc, field) => ({ ...acc, [field]: true }), {} as Record<keyof PetFormData, true>)
+    const sectionSchema = petFormSchema.pick(pickMask)
+
+    const result = sectionSchema.safeParse(data)
+
+    if (!result.success) {
+      isValid = false
+      result.error.errors.forEach((error) => {
+        const path = error.path.join('.') as keyof PetFormData
+        errors[path] = error.message
+      })
+    }
+
+    return { success: isValid, errors }
+  }, [])
+
+  return {
+    validateForm,
+    validateField,
+    validateSection
   }
-
-return { success: isValid, errors }
-}, [])
-
-return {
-  validateForm,
-  validateField,
-  validateSection
-}
 }
