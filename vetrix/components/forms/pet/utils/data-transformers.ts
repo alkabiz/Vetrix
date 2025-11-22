@@ -171,7 +171,7 @@ export function extractChangedFields(
   Object.keys(current).forEach((k) => {
     const key = k as keyof PetFormData
     if (JSON.stringify(current[key]) !== JSON.stringify(original[key])) {
-      changes[key] = current[key]
+      (changes as any)[key] = current[key]
     }
   })
 
