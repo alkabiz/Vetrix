@@ -91,9 +91,103 @@ export type BehavioralAndCareData = Pick<
   "behavioralNotes" | "exerciseRequirements"
 >
 
-id: number
-name: string
-hexCode ?: string
+export type AcquisitionInformationData = Pick<
+  PetFormData,
+  "acquisitionDate" | "acquisitionSource" | "previousOwnerInfo"
+>
+
+// Form validation errors
+export type PetFormErrors = {
+  [K in keyof PetFormData]?: string
+} & {
+  submit?: string
+  _form?: string
+}
+
+// Section props interfaces
+export interface BasicInformationSectionProps {
+  formData: BasicInformationData
+  errors: PetFormErrors
+  owners: Owner[]
+  species: Species[]
+  breeds: Breed[]
+  colors: Color[]
+  sexes: Sex[]
+  onFieldChange: <K extends keyof BasicInformationData>(
+    field: K,
+    value: BasicInformationData[K]
+  ) => void
+  disabled?: boolean
+}
+
+export interface BirthAndAgeSectionProps {
+  formData: BirthAndAgeData
+  errors: PetFormErrors
+  onFieldChange: <K extends keyof BirthAndAgeData>(
+    field: K,
+    value: BirthAndAgeData[K]
+  ) => void
+  disabled?: boolean
+}
+
+export interface IdentificationSectionProps {
+  formData: IdentificationData
+  errors: PetFormErrors
+  onFieldChange: <K extends keyof IdentificationData>(
+    field: K,
+    value: IdentificationData[K]
+  ) => void
+  disabled?: boolean
+}
+
+export interface MedicalInformationSectionProps {
+  formData: MedicalInformationData
+  errors: PetFormErrors
+  sterilizationTypes: SterilizationTypeOption[]
+  onFieldChange: <K extends keyof MedicalInformationData>(
+    field: K,
+    value: MedicalInformationData[K]
+  ) => void
+  disabled?: boolean
+}
+
+export interface BehavioralAndCareSectionProps {
+  formData: BehavioralAndCareData
+  errors: PetFormErrors
+  onFieldChange: <K extends keyof BehavioralAndCareData>(
+    field: K,
+    value: BehavioralAndCareData[K]
+  ) => void
+  disabled?: boolean
+}
+
+export interface AcquisitionInformationSectionProps {
+  formData: AcquisitionInformationData
+  errors: PetFormErrors
+  onFieldChange: <K extends keyof AcquisitionInformationData>(
+    field: K,
+    value: AcquisitionInformationData[K]
+  ) => void
+  disabled?: boolean
+}
+
+// Dynamic option types
+export interface SpeciesOption {
+  id: number
+  name: string
+  scientificName?: string
+}
+
+export interface BreedOption {
+  id: number
+  name: string
+  speciesId: number
+}
+
+export interface ColorOption {
+  id: number
+  name: string
+  hexCode?: string
 }
 
 export interface SexOption {
