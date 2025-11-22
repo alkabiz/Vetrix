@@ -1,3 +1,4 @@
+```typescript
 "use client"
 
 import React from "react"
@@ -6,16 +7,10 @@ import { FormField } from "../fields/FormField"
 import { FormDatePicker } from "../fields/FormDatePicker"
 import { FormTextarea } from "../fields/FormTextarea"
 import type { AcquisitionInformationSectionProps } from "../types/PetForm.types"
-import { areSectionPropsEqual } from "../types/section.types"
+import { createSectionPropsComparator, MEMO_CONFIG } from "../utils/performance-utils"
 
 export const AcquisitionInformationSection = React.memo<AcquisitionInformationSectionProps>(
-  ({ formData, errors, onFieldChange }) => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const validateAcquisitionDate = (date: string): boolean => {
-      if (!date || !formData.acquisitionDate) return true
-      return new Date(date) >= new Date(formData.acquisitionDate)
-    }
-
+  ({ formData, errors, onFieldChange, disabled = false }) => {
     return (
       <Card>
         <CardHeader>
@@ -30,6 +25,7 @@ export const AcquisitionInformationSection = React.memo<AcquisitionInformationSe
               onChange={(value) => onFieldChange("acquisitionDate", value)}
               error={errors.acquisitionDate}
               maxDate={new Date().toISOString().split('T')[0]}
+              disabled={disabled}
             />
 
             <FormField
@@ -40,6 +36,7 @@ export const AcquisitionInformationSection = React.memo<AcquisitionInformationSe
               error={errors.acquisitionSource}
               placeholder="e.g., Breeder, Shelter, Rescue, Private"
               maxLength={100}
+              disabled={disabled}
             />
           </div>
 
@@ -52,6 +49,7 @@ export const AcquisitionInformationSection = React.memo<AcquisitionInformationSe
             placeholder="Information about previous owners, if applicable..."
             maxLength={1000}
             rows={3}
+            disabled={disabled}
           />
 
           {formData.acquisitionDate && (
@@ -63,7 +61,8 @@ export const AcquisitionInformationSection = React.memo<AcquisitionInformationSe
       </Card>
     )
   },
-  areSectionPropsEqual
+  createSectionPropsComparator(MEMO_CONFIG.ACQUISITION_FIELDS)
 )
 
 AcquisitionInformationSection.displayName = "AcquisitionInformationSection"
+```
