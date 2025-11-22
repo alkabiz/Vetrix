@@ -3,14 +3,18 @@
 import React from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { FormField } from "../fields/FormField"
+"use client"
+
+import React from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { FormField } from "../fields/FormField"
 import { FormDatePicker } from "../fields/FormDatePicker"
 import { FormSelect } from "../fields/FormSelect"
 import { FormTextarea } from "../fields/FormTextarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import type { MedicalInformationSectionProps } from "../types/PetForm.types"
-import { areSectionPropsEqual } from "../types/section.types"
-import { createSectionPropsComparator } from "../utils/performance-utils"
+import { createSectionPropsComparator, MEMO_CONFIG } from "../utils/performance-utils"
 
 export const MedicalInformationSection = React.memo<MedicalInformationSectionProps>(
   ({ formData, errors, sterilizationTypes, onFieldChange }) => {
@@ -32,7 +36,7 @@ export const MedicalInformationSection = React.memo<MedicalInformationSectionPro
             <Checkbox
               id="isSterilized"
               checked={isSterilized}
-              onCheckedChange={(checked) => 
+              onCheckedChange={(checked) =>
                 onFieldChange("isSterilized", checked as boolean)
               }
               aria-describedby="sterilization-description"
@@ -71,9 +75,8 @@ export const MedicalInformationSection = React.memo<MedicalInformationSectionPro
                 error={errors.sterilizationTypeId}
                 required
                 placeholder="Select type"
-                aria-required="true" onChange={function (value: string): void {
-                  throw new Error("Function not implemented.")
-                } }              />
+                aria-required="true"
+              />
             </div>
           )}
 
@@ -123,12 +126,12 @@ export const MedicalInformationSection = React.memo<MedicalInformationSectionPro
             </div>
           )}
 
-          {isSterilized && formData.sterilizationDate && formData.dateOfBirth && 
-           !validateSterilizationDate(formData.sterilizationDate) && (
-            <p className="text-sm text-destructive" role="alert">
-              Sterilization date cannot be earlier than date of birth
-            </p>
-          )}
+          {isSterilized && formData.sterilizationDate && formData.dateOfBirth &&
+            !validateSterilizationDate(formData.sterilizationDate) && (
+              <p className="text-sm text-destructive" role="alert">
+                Sterilization date cannot be earlier than date of birth
+              </p>
+            )}
 
           {hasDeathDate && !formData.causeOfDeath && (
             <p className="text-sm text-destructive" role="alert">
@@ -139,15 +142,7 @@ export const MedicalInformationSection = React.memo<MedicalInformationSectionPro
       </Card>
     )
   },
-  createSectionPropsComparator([
-    "isSterilized",
-    "sterilizationDate",
-    "sterilizationTypeId",
-    "specialNeeds",
-    "dietaryRestrictions",
-    "dateOfDeath",
-    "causeOfDeath"
-  ])
+  createSectionPropsComparator(MEMO_CONFIG.MEDICAL_FIELDS)
 )
 
 MedicalInformationSection.displayName = "MedicalInformationSection"
