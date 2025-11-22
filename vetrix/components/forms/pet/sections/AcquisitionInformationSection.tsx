@@ -1,4 +1,3 @@
-```typescript
 "use client"
 
 import React from "react"
@@ -65,4 +64,3 @@ export const AcquisitionInformationSection = React.memo<AcquisitionInformationSe
 )
 
 AcquisitionInformationSection.displayName = "AcquisitionInformationSection"
-```
