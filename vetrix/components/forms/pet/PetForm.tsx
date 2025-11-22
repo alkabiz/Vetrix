@@ -38,7 +38,7 @@ export function PetForm({
     formData,
     errors,
     isSubmitting,
-    filteredBreeds,
+
     handleFieldChange,
     handleSubmit,
     resetForm,

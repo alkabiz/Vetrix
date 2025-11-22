@@ -1,3 +1,16 @@
+import type { PetFormData } from "../types/PetForm.types"
+import { DEFAULT_PET_FORM_VALUES } from "../types/form-data.types"
+import type { Pet } from "@/lib/database/database"
+import { formatDateForInput } from "./date-utils"
+
+/**
+ * Generate a unique pet number following the pattern PET + timestamp
+ */
+export function generatePetNumber(): string {
+  const timestamp = Date.now().toString()
+  const randomSuffix = Math.floor(Math.random() * 1000).toString().padStart(3, '0')
+  return `PET${timestamp.slice(-6)}${randomSuffix}`
+}
 
 /**
  * Get initial form data for a new pet
@@ -134,4 +147,4 @@ export function getFieldDisplayValue(
 }
 
 // Re-export from date-utils for convenience
-import { formatDateForInput } from "./date-utils"
+export { formatDateForInput }
