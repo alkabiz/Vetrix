@@ -3,7 +3,7 @@
 import { useReducer, useCallback, useEffect, useRef } from "react"
 import type { Pet } from "@/lib/database/database"
 import type { UsePetFormProps, UsePetFormReturn, PetFormData, PetFormErrors } from "../types/PetForm.types"
-import { DEFAULT_PET_FORM_VALUES } from "../utils/form-defaults"
+import { DEFAULT_PET_FORM_VALUES } from "../types/form-data.types"
 import { usePetFormValidation } from "./usePetFormValidation"
 import { transformFormDataToPet, transformPetToFormData } from "../utils/data-transformers"
 
