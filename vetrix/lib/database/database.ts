@@ -204,7 +204,7 @@ export interface EmploymentStatus {
 }
 
 export interface Owner {
-  name: ReactNode
+  name?: string
   id: number // INT UNSIGNED, PK
   firstName: string // Nombre del propietario
   lastName: string // Apellido del propietario
@@ -332,9 +332,7 @@ export interface InsuranceProvider {
 }
 
 export interface Pet {
-  owner_name: ReactNode
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  owner_id(owner_id: any): unknown
+  owner_name?: string
   id: number // INT UNSIGNED AUTO_INCREMENT
   petNumber: string // Número único mascota
   ownerId: number // FK → mas_owners.id
@@ -658,16 +656,6 @@ export interface InvoiceItemDiscount {
 
 // fac_invoices.interface.ts
 export interface Invoice {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  owner_id(owner_id: any): string
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  pet_id(pet_id: any): string
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  appointment_id: any
-  invoice_date: string
-  status: "pending" | "paid" | "overdue"
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  services(services: any): string[]
   id: number
   invoiceNumber: string
 
@@ -688,6 +676,7 @@ export interface Invoice {
   balanceDue: number
 
   // Estado y moneda
+  status: "pending" | "paid" | "overdue"
   statusId: number // FK a cat_invoice_statuses
   currencyCode: string // ISO-4217 (COP, USD, etc.)
   exchangeRate: number
@@ -702,6 +691,10 @@ export interface Invoice {
   // Auditoría
   createdAt: string // ISO datetime
   updatedAt: string // ISO datetime
+
+  // Optional fields from joins
+  owner_name?: string
+  pet_name?: string
 }
 
 // fac_invoice_discounts.interface.ts
