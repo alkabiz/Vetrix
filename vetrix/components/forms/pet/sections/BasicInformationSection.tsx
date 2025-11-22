@@ -21,7 +21,7 @@ const BasicInformationSectionComponent: React.FC<BasicInformationSectionProps> =
   const handleSpeciesChange = (value: string) => {
     const speciesId = value === "" ? "" : Number(value)
     onFieldChange("speciesId", speciesId)
-    
+
     // Reset breed when species changes
     if (formData.breedId !== "") {
       onFieldChange("breedId", "")
@@ -47,7 +47,7 @@ const BasicInformationSectionComponent: React.FC<BasicInformationSectionProps> =
             aria-invalid={!!errors.petNumber}
             aria-describedby={errors.petNumber ? "petNumber-error" : undefined}
           />
-          
+
           <FormSelect
             label="Owner *"
             name="ownerId"
@@ -64,7 +64,7 @@ const BasicInformationSectionComponent: React.FC<BasicInformationSectionProps> =
             aria-required="true"
             aria-invalid={!!errors.ownerId} onChange={function (): void {
               throw new Error("Function not implemented.")
-            } }          />
+            }} />
         </div>
 
         <FormField
@@ -98,7 +98,7 @@ const BasicInformationSectionComponent: React.FC<BasicInformationSectionProps> =
             aria-required="true"
             aria-invalid={!!errors.speciesId} onChange={function (): void {
               throw new Error("Function not implemented.")
-            } }          />
+            }} />
 
           <FormSelect
             label="Breed"
@@ -114,7 +114,7 @@ const BasicInformationSectionComponent: React.FC<BasicInformationSectionProps> =
             placeholder={formData.speciesId ? "Select breed" : "Select species first"}
             aria-invalid={!!errors.breedId} onChange={function (): void {
               throw new Error("Function not implemented.")
-            } }          />
+            }} />
 
           <FormSelect
             label="Sex *"
@@ -132,7 +132,7 @@ const BasicInformationSectionComponent: React.FC<BasicInformationSectionProps> =
             aria-required="true"
             aria-invalid={!!errors.sexId} onChange={function (): void {
               throw new Error("Function not implemented.")
-            } }          />
+            }} />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -150,7 +150,7 @@ const BasicInformationSectionComponent: React.FC<BasicInformationSectionProps> =
             placeholder="Select color"
             aria-invalid={!!errors.primaryColorId} onChange={function (): void {
               throw new Error("Function not implemented.")
-            } }          />
+            }} />
 
           <FormSelect
             label="Secondary Color"
@@ -158,24 +158,9 @@ const BasicInformationSectionComponent: React.FC<BasicInformationSectionProps> =
             value={String(formData.secondaryColorId)}
             onValueChange={(value) => onFieldChange("secondaryColorId", value === "" ? "" : Number(value))}
             options={colors.map(c => ({
-              value: String(c.id),
-              label: c.name
-            }))}
-            error={errors.secondaryColorId}
-            disabled={disabled}
-            placeholder="Select color"
-            aria-invalid={!!errors.secondaryColorId} onChange={function (): void {
-              throw new Error("Function not implemented.")
-            } }          />
-        </div>
-
-        {/* Error summary for the section */}
-        {(errors.petNumber || errors.ownerId || errors.name || errors.speciesId || errors.sexId) && (
-          <div 
-            className="p-3 border border-destructive/20 bg-destructive/10 rounded-md"
-            role="alert"
-            aria-live="polite"
-          >
+              role="alert"
+            aria- live= "polite"
+              >
             <h4 className="text-sm font-medium text-destructive mb-1">
               Please fix the following errors:
             </h4>
