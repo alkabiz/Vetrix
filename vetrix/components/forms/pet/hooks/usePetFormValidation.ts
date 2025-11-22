@@ -2,7 +2,7 @@
 
 import { useCallback } from "react"
 import type { PetFormData, PetFormErrors } from "../types/PetForm.types"
-import { petFormSchema } from "../types/validation.schemas"
+import { petFormSchema, petFormBaseSchema } from "../types/validation.schemas"
 
 interface UsePetFormValidationReturn {
   validateForm: (data: PetFormData) => { success: boolean; errors: PetFormErrors }
@@ -33,7 +33,7 @@ export function usePetFormValidation(): UsePetFormValidationReturn {
     try {
       // Create a schema that only validates the specific field
       // We use pick to extract just the field we want to validate
-      const fieldSchema = petFormSchema.pick({ [field]: true } as Record<keyof PetFormData, true>)
+      const fieldSchema = petFormBaseSchema.pick({ [field]: true } as Record<keyof PetFormData, true>)
       const result = fieldSchema.safeParse({ [field]: value })
 
       if (!result.success) {
@@ -60,7 +60,7 @@ export function usePetFormValidation(): UsePetFormValidationReturn {
 
     // Create a schema for the section by picking the fields
     const pickMask = fields.reduce((acc, field) => ({ ...acc, [field]: true }), {} as Record<keyof PetFormData, true>)
-    const sectionSchema = petFormSchema.pick(pickMask)
+    const sectionSchema = petFormBaseSchema.pick(pickMask)
 
     const result = sectionSchema.safeParse(data)
 
