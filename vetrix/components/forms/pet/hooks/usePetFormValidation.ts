@@ -37,28 +37,12 @@ return { success: true }
   }
 }
   }, [])
-
-// Validate form section (subset of fields)
-const validateSection = useCallback((fields: (keyof PetFormData)[], data: PetFormData): { success: boolean; errors: PetFormErrors } => {
-  const errors: PetFormErrors = {}
-  let isValid = true
-
-  // Create a schema for the section by picking the fields
-  const sectionSchema = petFormSchema.pick(
-    fields.reduce((acc, field) => ({ ...acc, [field]: true }), {} as any)
-  )
-
-  const result = sectionSchema.safeParse(data)
-
-  if (!result.success) {
-    isValid = false
-    result.error.errors.forEach((error) => {
-      const path = error.path.join('.') as keyof PetFormData
-      errors[path] = error.message
+const path = error.path.join('.') as keyof PetFormData
+errors[path] = error.message
     })
   }
 
-  return { success: isValid, errors }
+return { success: isValid, errors }
 }, [])
 
 return {
