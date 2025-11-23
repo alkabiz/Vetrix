@@ -1,5 +1,3 @@
-
-
 import type { User } from "@/lib/database/database"
 
 export function hasPermission(user: User | null, permission: string): boolean {
