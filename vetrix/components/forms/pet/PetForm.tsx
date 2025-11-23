@@ -22,12 +22,12 @@ import { PET_FORM_CONFIG } from "./types/form-data.types"
 
 export function PetForm({
   pet,
-  owners,
-  species,
-  breeds,
-  colors,
-  sexes,
-  sterilizationTypes,
+  owners = [],
+  species = [],
+  breeds = [],
+  colors = [],
+  sexes = [],
+  sterilizationTypes = [],
   open,
   onOpenChange,
   onSubmit
@@ -97,100 +97,27 @@ export function PetForm({
     }
   }
 
+  const handleCancel = () => {
+    onOpenChange(false)
+  }
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[900px] max-h-[95vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
-            {pet ? "Edit Pet" : "Add New Pet"}
-          </DialogTitle>
-          <DialogDescription>
-            {pet
-              ? "Update the pet's information below."
-              : "Enter the new pet's information below."}
-          </DialogDescription>
-        </DialogHeader>
-
-        <form onSubmit={handleFormSubmit} className="space-y-6">
-          {/* Form Sections */}
-          <BasicInformationSection
-            formData={formData}
-            errors={errors}
-            owners={owners}
-            species={speciesOptions}
-            breeds={filteredBreeds}
-            colors={colorOptions}
-            sexes={sexOptions}
-            onFieldChange={handleFieldChange}
-          />
-
-          <BirthAndAgeSection
-            formData={formData}
-            errors={errors}
-            onFieldChange={handleFieldChange}
-          />
-
-          <IdentificationSection
-            formData={formData}
-            errors={errors}
-            onFieldChange={handleFieldChange}
-          />
-
-          <MedicalInformationSection
-            formData={formData}
-            errors={errors}
-            sterilizationTypes={sterilizationTypeOptions}
-            onFieldChange={handleFieldChange}
-          />
-
-          <BehavioralAndCareSection
-            formData={formData}
-            errors={errors}
-            onFieldChange={handleFieldChange}
-          />
-
-          <AcquisitionInformationSection
-            formData={formData}
-            errors={errors}
-            onFieldChange={handleFieldChange}
-          />
-
-          {/* Status and Submit */}
-          <div className="flex items-center justify-between pt-4 border-t">
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="isActive"
-                checked={formData.isActive}
-                onChange={(e) => handleFieldChange("isActive", e.target.checked)}
-                className="rounded border-gray-300"
-              />
-              <label htmlFor="isActive" className="text-sm font-medium">
-                Active pet
-              </label>
-            </div>
-
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-                disabled={isSubmitting}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-              >
-                {isSubmitting
-                  ? "Saving..."
-                  : pet ? "Update Pet" : "Create Pet"}
-              </Button>
-            </div>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+    <PetFormView
+      pet={pet}
+      formData={formData}
+      errors={errors}
+      isSubmitting={isSubmitting}
+      owners={owners}
+      speciesOptions={speciesOptions}
+      filteredBreeds={filteredBreeds}
+      colorOptions={colorOptions}
+      sexOptions={sexOptions}
+      sterilizationTypeOptions={sterilizationTypeOptions}
+      open={open}
+      onOpenChange={onOpenChange}
+      onFieldChange={handleFieldChange}
+      onSubmit={handleFormSubmit}
+      onCancel={handleCancel}
+    />
   )
 }
