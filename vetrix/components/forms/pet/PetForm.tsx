@@ -8,7 +8,6 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { usePetForm } from "./hooks/usePetForm"
 import { useDynamicOptions } from "./hooks/useDynamicOptions"
 import type { PetFormProps } from "./types/PetForm.types"
-import { PET_FORM_CONFIG } from "./types/form-data.types"
 import { PetFormView } from "./PetFormView"
 
 export function PetForm({
