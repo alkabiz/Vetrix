@@ -6,14 +6,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { useToast } from "@/hooks/use-toast"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 
-// Import sections
-import { BasicInformationSection } from "./sections/BasicInformationSection"
-import { BirthAndAgeSection } from "./sections/BirthAndAgeSection"
-import { IdentificationSection } from "./sections/IdentificationSection"
-import { MedicalInformationSection } from "./sections/MedicalInformationSection"
-import { BehavioralAndCareSection } from "./sections/BehavioralAndCareSection"
-import { AcquisitionInformationSection } from "./sections/AcquisitionInformationSection"
-
 // Import hooks and types
 import { usePetForm } from "./hooks/usePetForm"
 import { useDynamicOptions } from "./hooks/useDynamicOptions"
