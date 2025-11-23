@@ -14,22 +14,21 @@ export { AcquisitionInformationSection } from "./sections/AcquisitionInformation
 export { usePetForm } from "./hooks/usePetForm"
 export { usePetFormValidation } from "./hooks/usePetFormValidation"
 export { useDynamicOptions } from "./hooks/useDynamicOptions"
-
 // Utility exports
-export { 
-  DEFAULT_PET_FORM_VALUES, 
+export {
+  DEFAULT_PET_FORM_VALUES,
   PET_FORM_CONFIG,
   FIELD_LABELS,
-  FIELD_PLACEHOLDERS 
-} from "./utils/date-utils"
+  FIELD_PLACEHOLDERS
+} from "./types/form-data.types"
 
 // Type exports
-export type { 
-  PetFormData, 
+export type {
+  PetFormData,
   PetFormErrors,
   BasicInformationData,
   MedicalInformationData,
   SpeciesOption,
   BreedOption,
-  ColorOption 
+  ColorOption
 } from "./types/PetForm.types"
