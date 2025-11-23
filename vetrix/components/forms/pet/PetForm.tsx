@@ -2,7 +2,6 @@
 
 import { useEffect } from "react"
 import { useToast } from "@/hooks/use-toast"
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 
 // Import hooks and types
 import { usePetForm } from "./hooks/usePetForm"
