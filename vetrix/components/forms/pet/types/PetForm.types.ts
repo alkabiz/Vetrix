@@ -242,3 +242,29 @@ export type PetMedicalInfoInput = z.infer<typeof petMedicalInfoSchema>
 export type PetIdentificationInput = z.infer<typeof petIdentificationSchema>
 export type PetBehaviorInput = z.infer<typeof petBehaviorSchema>
 export type PetFormInput = z.infer<typeof petFormSchema>
+
+// View component props
+export interface PetFormViewProps {
+  // Data
+  pet?: Pet | null
+  formData: PetFormData
+  errors: PetFormErrors
+  isSubmitting: boolean
+
+  // Options
+  owners: Owner[]
+  speciesOptions: SpeciesOption[]
+  filteredBreeds: BreedOption[]
+  colorOptions: ColorOption[]
+  sexOptions: SexOption[]
+  sterilizationTypeOptions: SterilizationTypeOption[]
+
+  // State
+  open: boolean
+
+  // Handlers
+  onOpenChange: (open: boolean) => void
+  onFieldChange: <K extends keyof PetFormData>(field: K, value: PetFormData[K]) => void
+  onSubmit: (e: React.FormEvent) => void
+  onCancel: () => void
+}
