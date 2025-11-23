@@ -18,7 +18,7 @@ import { AcquisitionInformationSection } from "./sections/AcquisitionInformation
 import { usePetForm } from "./hooks/usePetForm"
 import { useDynamicOptions } from "./hooks/useDynamicOptions"
 import type { PetFormProps } from "./types/PetForm.types"
-import { PET_FORM_CONFIG } from "../pet/types/form-data.types"
+import { PET_FORM_CONFIG } from "./types/form-data.types"
 
 export function PetForm({
   pet,
@@ -114,16 +114,7 @@ export function PetForm({
         <form onSubmit={handleFormSubmit} className="space-y-6">
           {/* Form Sections */}
           <BasicInformationSection
-            formData={{
-              petNumber: formData.petNumber,
-              ownerId: formData.ownerId,
-              name: formData.name,
-              speciesId: formData.speciesId,
-              breedId: formData.breedId,
-              sexId: formData.sexId,
-              primaryColorId: formData.primaryColorId,
-              secondaryColorId: formData.secondaryColorId,
-            }}
+            formData={formData}
             errors={errors}
             owners={owners}
             species={speciesOptions}
@@ -134,56 +125,32 @@ export function PetForm({
           />
 
           <BirthAndAgeSection
-            formData={{
-              dateOfBirth: formData.dateOfBirth,
-              isBirthEstimated: formData.isBirthEstimated,
-            }}
+            formData={formData}
             errors={errors}
             onFieldChange={handleFieldChange}
           />
 
           <IdentificationSection
-            formData={{
-              microchipNumber: formData.microchipNumber,
-              microchipDate: formData.microchipDate,
-              microchipLocation: formData.microchipLocation,
-              tattooNumber: formData.tattooNumber,
-              registrationNumber: formData.registrationNumber,
-            }}
+            formData={formData}
             errors={errors}
             onFieldChange={handleFieldChange}
           />
 
           <MedicalInformationSection
-            formData={{
-              isSterilized: formData.isSterilized,
-              sterilizationDate: formData.sterilizationDate,
-              sterilizationTypeId: formData.sterilizationTypeId,
-              specialNeeds: formData.specialNeeds,
-              dietaryRestrictions: formData.dietaryRestrictions,
-              dateOfDeath: formData.dateOfDeath,
-              causeOfDeath: formData.causeOfDeath,
-            }}
+            formData={formData}
             errors={errors}
             sterilizationTypes={sterilizationTypeOptions}
             onFieldChange={handleFieldChange}
           />
 
           <BehavioralAndCareSection
-            formData={{
-              behavioralNotes: formData.behavioralNotes,
-              exerciseRequirements: formData.exerciseRequirements,
-            }}
+            formData={formData}
             errors={errors}
             onFieldChange={handleFieldChange}
           />
 
           <AcquisitionInformationSection
-            formData={{
-              acquisitionDate: formData.acquisitionDate,
-              acquisitionSource: formData.acquisitionSource,
-              previousOwnerInfo: formData.previousOwnerInfo,
-            }}
+            formData={formData}
             errors={errors}
             onFieldChange={handleFieldChange}
           />
