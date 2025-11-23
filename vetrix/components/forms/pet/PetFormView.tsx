@@ -127,8 +127,6 @@ const PetFormViewComponent: React.FC<PetFormViewProps> = ({
     )
 }
 
-// Memoize the view component to prevent unnecessary re-renders
-// We use shallow comparison for props as most are primitives or stable references
 export const PetFormView = React.memo(PetFormViewComponent, shallowCompareProps)
 
 PetFormView.displayName = "PetFormView"
