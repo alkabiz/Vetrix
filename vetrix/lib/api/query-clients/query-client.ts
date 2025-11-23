@@ -1,21 +1,17 @@
 import { QueryClient } from "@tanstack/react-query"
 
+/**
+ * Centralized QueryClient instance for React Query.
+ * Configured with default options for caching and retries.
+ */
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      retry: (failureCount, error: any) => {
-        // Don't retry on 4xx errors
-        if (error?.response?.status >= 400 && error?.response?.status < 500) {
-          return false
-        }
-        return failureCount < 3
-      },
-    },
-    mutations: {
-      retry: false,
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      retry: 1,
+      refetchOnWindowFocus: false,
     },
   },
 })
+
+export default queryClient
