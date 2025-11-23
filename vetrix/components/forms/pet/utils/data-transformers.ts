@@ -167,5 +167,22 @@ export function mergeFormDataUpdates(
 /**
  * Extract only changed fields from form data
  */
+export function extractChangedFields(
+  current: PetFormData,
+  original: PetFormData
+): Partial<PetFormData> {
+  const changes: Partial<PetFormData> = {}
+
+  Object.keys(current).forEach((k) => {
+    const key = k as keyof PetFormData
+    if (!deepEqual(current[key], original[key])) {
+      changes[key] = current[key]
+    }
+  })
+
+  return changes
+}
+
+// Re-export date formatting utility
 import { formatDateForInput } from "./date-utils"
 export { formatDateForInput }
