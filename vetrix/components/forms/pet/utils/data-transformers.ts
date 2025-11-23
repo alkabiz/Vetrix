@@ -1,5 +1,6 @@
 import type { PetFormData } from "../types/PetForm.types"
 import type { Pet } from "@/lib/database/database"
+import { deepEqual } from "./performance-utils"
 
 /**
  * Transform form data to database format
@@ -10,24 +11,24 @@ export function transformFormDataToPet(formData: PetFormData): Omit<Pet, "id" | 
 
   return {
     petNumber: sanitizedData.petNumber,
-    ownerId: sanitizedData.ownerId as number,
+    ownerId: Number(sanitizedData.ownerId),
     name: sanitizedData.name,
-    speciesId: sanitizedData.speciesId as number,
-    breedId: sanitizedData.breedId as number | undefined,
-    sexId: sanitizedData.sexId as number,
-    primaryColorId: sanitizedData.primaryColorId as number | undefined,
-    secondaryColorId: sanitizedData.secondaryColorId as number | undefined,
+    speciesId: Number(sanitizedData.speciesId),
+    breedId: sanitizedData.breedId ? Number(sanitizedData.breedId) : undefined,
+    sexId: Number(sanitizedData.sexId),
+    primaryColorId: sanitizedData.primaryColorId ? Number(sanitizedData.primaryColorId) : undefined,
+    secondaryColorId: sanitizedData.secondaryColorId ? Number(sanitizedData.secondaryColorId) : undefined,
     dateOfBirth: sanitizedData.dateOfBirth ? new Date(sanitizedData.dateOfBirth) : undefined,
-    isBirthEstimated: sanitizedData.isBirthEstimated,
+    isBirthEstimated: Boolean(sanitizedData.isBirthEstimated),
     microchipNumber: sanitizedData.microchipNumber || undefined,
     microchipDate: sanitizedData.microchipDate ? new Date(sanitizedData.microchipDate) : undefined,
     microchipLocation: sanitizedData.microchipLocation || undefined,
     tattooNumber: sanitizedData.tattooNumber || undefined,
-    isSterilized: sanitizedData.isSterilized,
+    isSterilized: Boolean(sanitizedData.isSterilized),
     sterilizationDate: sanitizedData.sterilizationDate ? new Date(sanitizedData.sterilizationDate) : undefined,
-    sterilizationTypeId: sanitizedData.sterilizationTypeId as number | undefined,
+    sterilizationTypeId: sanitizedData.sterilizationTypeId ? Number(sanitizedData.sterilizationTypeId) : undefined,
     registrationNumber: sanitizedData.registrationNumber || undefined,
-    isActive: sanitizedData.isActive,
+    isActive: Boolean(sanitizedData.isActive),
     dateOfDeath: sanitizedData.dateOfDeath ? new Date(sanitizedData.dateOfDeath) : undefined,
     causeOfDeath: sanitizedData.causeOfDeath || undefined,
     specialNeeds: sanitizedData.specialNeeds || undefined,
@@ -91,7 +92,9 @@ export function sanitizeFormData(formData: PetFormData): PetFormData {
 
   optionalStringFields.forEach(field => {
     if (sanitized[field] === "") {
-      (sanitized[field] as any) = undefined
+      // @ts-expect-error - We are intentionally setting this to undefined for cleanup, 
+      // even though the type might expect a string. This is temporary before DB transformation.
+      sanitized[field] = undefined
     }
   })
 
@@ -102,7 +105,8 @@ export function sanitizeFormData(formData: PetFormData): PetFormData {
 
   optionalNumberFields.forEach(field => {
     if (sanitized[field] === "") {
-      (sanitized[field] as any) = undefined
+      // @ts-expect-error - Same as above, temporary undefined for cleanup
+      sanitized[field] = undefined
     }
   })
 
@@ -113,7 +117,8 @@ export function sanitizeFormData(formData: PetFormData): PetFormData {
 
   optionalDateFields.forEach(field => {
     if (sanitized[field] === "") {
-      (sanitized[field] as any) = undefined
+      // @ts-expect-error - Same as above, temporary undefined for cleanup
+      sanitized[field] = undefined
     }
   })
 
@@ -170,8 +175,8 @@ export function extractChangedFields(
 
   Object.keys(current).forEach((k) => {
     const key = k as keyof PetFormData
-    if (JSON.stringify(current[key]) !== JSON.stringify(original[key])) {
-      (changes as any)[key] = current[key]
+    if (!deepEqual(current[key], original[key])) {
+      changes[key] = current[key]
     }
   })
 
