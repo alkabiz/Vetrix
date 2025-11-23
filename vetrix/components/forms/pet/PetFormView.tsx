@@ -1,6 +1,7 @@
 "use client"
 
 import React from "react"
+import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { BasicInformationSection } from "./sections/BasicInformationSection"
 import { BirthAndAgeSection } from "./sections/BirthAndAgeSection"
