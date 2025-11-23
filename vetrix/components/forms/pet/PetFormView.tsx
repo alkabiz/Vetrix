@@ -40,90 +40,38 @@ const PetFormViewComponent: React.FC<PetFormViewProps> = ({
                         {pet
                             ? "Update the pet's information below."
                             : "Enter the new pet's information below."}
-                    </DialogDescription>
-                </DialogHeader>
-
-                <form onSubmit={onSubmit} className="space-y-6">
-                    {/* Form Sections */}
-                    <BasicInformationSection
-                        formData={formData}
-                        errors={errors}
-                        owners={owners}
-                        species={speciesOptions}
-                        breeds={filteredBreeds}
-                        colors={colorOptions}
-                        sexes={sexOptions}
-                        onFieldChange={onFieldChange}
-                    />
-
-                    <BirthAndAgeSection
-                        formData={formData}
-                        errors={errors}
-                        onFieldChange={onFieldChange}
-                    />
-
-                    <IdentificationSection
-                        formData={formData}
-                        errors={errors}
-                        onFieldChange={onFieldChange}
-                    />
-
-                    <MedicalInformationSection
-                        formData={formData}
-                        errors={errors}
-                        sterilizationTypes={sterilizationTypeOptions}
-                        onFieldChange={onFieldChange}
-                    />
-
-                    <BehavioralAndCareSection
-                        formData={formData}
-                        errors={errors}
-                        onFieldChange={onFieldChange}
-                    />
-
-                    <AcquisitionInformationSection
-                        formData={formData}
-                        errors={errors}
-                        onFieldChange={onFieldChange}
-                    />
-
-                    {/* Status and Submit */}
-                    <div className="flex items-center justify-between pt-4 border-t">
-                        <div className="flex items-center space-x-2">
-                            <input
-                                type="checkbox"
-                                id="isActive"
-                                checked={formData.isActive}
-                                onChange={(e) => onFieldChange("isActive", e.target.checked)}
-                                className="rounded border-gray-300"
+                        id="isActive"
+                        checked={formData.isActive}
+                        onChange={(e) => onFieldChange("isActive", e.target.checked)}
+                        className="rounded border-gray-300"
                             />
-                            <label htmlFor="isActive" className="text-sm font-medium">
-                                Active pet
-                            </label>
-                        </div>
-
-                        <div className="flex gap-2">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={onCancel}
-                                disabled={isSubmitting}
-                            >
-                                Cancel
-                            </Button>
-                            <Button
-                                type="submit"
-                                disabled={isSubmitting}
-                            >
-                                {isSubmitting
-                                    ? "Saving..."
-                                    : pet ? "Update Pet" : "Create Pet"}
-                            </Button>
-                        </div>
+                        <label htmlFor="isActive" className="text-sm font-medium">
+                            Active pet
+                        </label>
                     </div>
-                </form>
-            </DialogContent>
-        </Dialog>
+
+                    <div className="flex gap-2">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={onCancel}
+                            disabled={isSubmitting}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            type="submit"
+                            disabled={isSubmitting}
+                        >
+                            {isSubmitting
+                                ? "Saving..."
+                                : pet ? "Update Pet" : "Create Pet"}
+                        </Button>
+                    </div>
+                </div>
+            </form>
+        </DialogContent>
+        </Dialog >
     )
 }
 
