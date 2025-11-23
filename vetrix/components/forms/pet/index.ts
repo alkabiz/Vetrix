@@ -21,7 +21,7 @@ export {
   PET_FORM_CONFIG,
   FIELD_LABELS,
   FIELD_PLACEHOLDERS 
-} from "./utils/form-"
+} from "./utils/"
 
 // Type exports
 export type { 
