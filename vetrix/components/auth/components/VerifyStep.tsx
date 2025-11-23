@@ -6,10 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Loader2 } from "lucide-react"
-import { verificationCodeSchema, type VerificationCodeFormValues } from "../../schemas/twofactor-schema"
+import { verificationCodeSchema, type VerificationCodeFormValues } from "../schemas/twofactor-schema"
 import { QrCodePlaceholder } from "./QrCodePlaceholder"
 import { SecretKeyDisplay } from "./SecretKeyDisplay"
-import { formatVerificationCode } from "../../utils/twofactor-utils"
+import { formatVerificationCode } from "../utils/twofactor-utils"
 
 interface VerifyStepProps {
     secret: string
