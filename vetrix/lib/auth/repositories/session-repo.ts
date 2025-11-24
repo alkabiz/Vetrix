@@ -1,135 +1,174 @@
-import { sql } from "@/lib/database/database"
+import { getDatabase } from "@/lib/database/database"
 import type { LoginSession, RefreshToken, SessionCreateData, RefreshTokenCreateData } from "../types/session"
 import crypto from "crypto"
 
 export const sessionRepo = {
-    async insertSession(data: SessionCreateData): Promise<string> {
+    insertSession(data: SessionCreateData): string {
         const sessionId = crypto.randomUUID()
         const now = new Date().toISOString()
+        const db = getDatabase()
 
-        await sql`
+        const stmt = db.prepare(`
       INSERT INTO user_sessions (
         id, user_id, access_token, refresh_token, ip_address, user_agent,
         created_at, last_activity, expires_at, is_active
-      ) VALUES (
-        ${sessionId}, ${data.userId}, ${data.accessToken}, ${data.refreshTokenHash}, 
-        ${data.ipAddress}, ${data.userAgent},
-        ${now}, ${now}, ${data.sessionExpiry.toISOString()}, true
-      )
-    `
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `)
+
+        stmt.run(
+            sessionId,
+            data.userId,
+            data.accessToken,
+            data.refreshTokenHash,
+            data.ipAddress,
+            data.userAgent,
+            now,
+            now,
+            data.sessionExpiry.toISOString(),
+            1 // true
+        )
+
         return sessionId
     },
 
-    async findSessionByAccessToken(accessToken: string): Promise<LoginSession | null> {
-        const sessions = await sql`
+    findSessionByAccessToken(accessToken: string): LoginSession | null {
+        const db = getDatabase()
+        const stmt = db.prepare(`
       SELECT * FROM user_sessions 
-      WHERE access_token = ${accessToken} AND is_active = true
-    `
-        return sessions.length > 0 ? (sessions[0] as LoginSession) : null
+      WHERE access_token = ? AND is_active = 1
+    `)
+        const session = stmt.get(accessToken) as LoginSession | undefined
+        return session || null
     },
 
-    async findSessionById(sessionId: string): Promise<LoginSession | null> {
-        const sessions = await sql`
+    findSessionById(sessionId: string): LoginSession | null {
+        const db = getDatabase()
+        const stmt = db.prepare(`
       SELECT * FROM user_sessions 
-      WHERE id = ${sessionId}
-    `
-        return sessions.length > 0 ? (sessions[0] as LoginSession) : null
+      WHERE id = ?
+    `)
+        const session = stmt.get(sessionId) as LoginSession | undefined
+        return session || null
     },
 
-    async updateSessionActivity(sessionId: string): Promise<void> {
-        await sql`
+    updateSessionActivity(sessionId: string): void {
+        const db = getDatabase()
+        const stmt = db.prepare(`
       UPDATE user_sessions 
-      SET last_activity = ${new Date().toISOString()}
-      WHERE id = ${sessionId}
-    `
+      SET last_activity = ?
+      WHERE id = ?
+    `)
+        stmt.run(new Date().toISOString(), sessionId)
     },
 
-    async updateSessionToken(sessionId: string, newAccessToken: string): Promise<void> {
-        await sql`
+    updateSessionToken(sessionId: string, newAccessToken: string): void {
+        const db = getDatabase()
+        const stmt = db.prepare(`
       UPDATE user_sessions 
-      SET access_token = ${newAccessToken}, last_activity = ${new Date().toISOString()}
-      WHERE id = ${sessionId}
-    `
+      SET access_token = ?, last_activity = ?
+      WHERE id = ?
+    `)
+        stmt.run(newAccessToken, new Date().toISOString(), sessionId)
     },
 
-    async deactivateSession(sessionId: string): Promise<void> {
-        await sql`
+    deactivateSession(sessionId: string): void {
+        const db = getDatabase()
+        const stmt = db.prepare(`
       UPDATE user_sessions 
-      SET is_active = false, last_activity = ${new Date().toISOString()}
-      WHERE id = ${sessionId}
-    `
+      SET is_active = 0, last_activity = ?
+      WHERE id = ?
+    `)
+        stmt.run(new Date().toISOString(), sessionId)
     },
 
-    async getUserSessions(userId: number): Promise<LoginSession[]> {
-        const sessions = await sql`
+    getUserSessions(userId: number): LoginSession[] {
+        const db = getDatabase()
+        const stmt = db.prepare(`
       SELECT * FROM user_sessions
-      WHERE user_id = ${userId} AND is_active = true
+      WHERE user_id = ? AND is_active = 1
       ORDER BY last_activity DESC
       LIMIT 50
-    `
-        return sessions as LoginSession[]
+    `)
+        return stmt.all(userId) as LoginSession[]
     },
 
-    async insertRefreshToken(data: RefreshTokenCreateData): Promise<string> {
+    insertRefreshToken(data: RefreshTokenCreateData): string {
         const id = crypto.randomUUID()
         const now = new Date().toISOString()
+        const db = getDatabase()
 
-        await sql`
+        const stmt = db.prepare(`
       INSERT INTO refresh_tokens (
         id, user_id, token_hash, expires_at, created_at, is_revoked
-      ) VALUES (
-        ${id}, ${data.userId}, ${data.tokenHash}, 
-        ${data.expiresAt.toISOString()}, ${now}, false
-      )
-    `
+      ) VALUES (?, ?, ?, ?, ?, ?)
+    `)
+
+        stmt.run(
+            id,
+            data.userId,
+            data.tokenHash,
+            data.expiresAt.toISOString(),
+            now,
+            0 // false
+        )
         return id
     },
 
-    async findRefreshToken(tokenHash: string): Promise<(RefreshToken & { username: string; email: string; role: string }) | null> {
-        const tokens = await sql`
+    findRefreshToken(tokenHash: string): (RefreshToken & { username: string; email: string; role: string }) | null {
+        const db = getDatabase()
+        const stmt = db.prepare(`
       SELECT rt.*, u.username, u.email, u.role
       FROM refresh_tokens rt
-      JOIN users u ON rt.user_id = u.id
-      WHERE rt.token_hash = ${tokenHash}
-    `
-        return tokens.length > 0 ? (tokens[0] as any) : null
+      JOIN usr_users u ON rt.user_id = u.id
+      WHERE rt.token_hash = ?
+    `)
+        const token = stmt.get(tokenHash) as any
+        return token || null
     },
 
-    async revokeRefreshToken(tokenHash: string): Promise<void> {
-        await sql`
+    revokeRefreshToken(tokenHash: string): void {
+        const db = getDatabase()
+        const stmt = db.prepare(`
       UPDATE refresh_tokens 
-      SET is_revoked = true 
-      WHERE token_hash = ${tokenHash}
-    `
+      SET is_revoked = 1 
+      WHERE token_hash = ?
+    `)
+        stmt.run(tokenHash)
     },
 
-    async cleanupExpired(): Promise<void> {
+    cleanupExpired(): void {
         const now = new Date().toISOString()
         const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
         const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+        const db = getDatabase()
 
         // Deactivate expired sessions
-        await sql`
+        const stmt1 = db.prepare(`
       UPDATE user_sessions 
-      SET is_active = false 
-      WHERE expires_at < ${now} OR last_activity < ${oneDayAgo}
-    `
+      SET is_active = 0 
+      WHERE expires_at < ? OR last_activity < ?
+    `)
+        stmt1.run(now, oneDayAgo)
 
         // Revoke expired refresh tokens
-        await sql`
+        const stmt2 = db.prepare(`
       UPDATE refresh_tokens 
-      SET is_revoked = true 
-      WHERE expires_at < ${now}
-    `
+      SET is_revoked = 1 
+      WHERE expires_at < ?
+    `)
+        stmt2.run(now)
 
         // Delete old data
-        await sql`
+        const stmt3 = db.prepare(`
       DELETE FROM user_sessions 
-      WHERE is_active = false AND created_at < ${thirtyDaysAgo}
-    `
-        await sql`
+      WHERE is_active = 0 AND created_at < ?
+    `)
+        stmt3.run(thirtyDaysAgo)
+
+        const stmt4 = db.prepare(`
       DELETE FROM refresh_tokens 
-      WHERE is_revoked = true AND created_at < ${thirtyDaysAgo}
-    `
+      WHERE is_revoked = 1 AND created_at < ?
+    `)
+        stmt4.run(thirtyDaysAgo)
     }
 }
