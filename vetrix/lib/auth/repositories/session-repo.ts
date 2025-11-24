@@ -1,5 +1,6 @@
 import { sql } from "@/lib/database/database"
 import type { LoginSession, RefreshToken, SessionCreateData, RefreshTokenCreateData } from "../types/session"
+import crypto from "crypto"
 
 export const sessionRepo = {
     async insertSession(data: SessionCreateData): Promise<string> {
