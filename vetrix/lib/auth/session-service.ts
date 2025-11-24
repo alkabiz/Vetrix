@@ -1,5 +1,5 @@
 import crypto from "crypto"
-import type { User } from "../types"
+import type { User } from "./types/auth"
 import type { LoginSession, SessionStore } from "./types/auth"
 import { generateAccessToken, generateRefreshToken, blacklistToken, refreshTokens } from "./token-service"
 
