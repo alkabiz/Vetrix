@@ -127,9 +127,10 @@ export const sessionRepo = {
     findRefreshToken(tokenHash: string): (RefreshToken & { username: string; email: string; role: string }) | null {
         const db = getDatabase()
         const stmt = db.prepare(`
-      SELECT rt.*, u.username, u.email, u.role
+      SELECT rt.*, u.username, u.email, r.name as role
       FROM refresh_tokens rt
       JOIN usr_users u ON rt.user_id = u.id
+      LEFT JOIN cat_roles r ON u.roleId = r.id
       WHERE rt.token_hash = ?
     `)
         const token = stmt.get(tokenHash) as any
