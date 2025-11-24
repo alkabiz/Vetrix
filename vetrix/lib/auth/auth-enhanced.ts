@@ -12,5 +12,5 @@ export * from "./session-service"
 export * from "./twofactor-service"
 
 // Re-export legacy auth functions if needed
-export * from "./auth"
+// export * from "./auth"
 
