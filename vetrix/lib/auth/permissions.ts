@@ -1,4 +1,4 @@
-import { UserRole } from './types';
+import { UserRole } from './';
 
 // Función genérica para crear verificadores de permisos
 const createPermissionChecker = (allowedRoles: UserRole[]) => 
