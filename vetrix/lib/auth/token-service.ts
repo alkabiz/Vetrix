@@ -2,8 +2,6 @@ import jwt from "jsonwebtoken"
 import crypto from "crypto"
 import type { User } from "./types/auth"
 import { authConfig, VALID_ROLES } from "../config/config"
-import { findUserById } from "../database/database-auth"
-import type { RefreshToken, TokenStore } from "./types/auth"
 
 // In-memory store for blacklisted tokens (replace with Redis/DB in production)
 const blacklistedTokens = new Set<string>()
