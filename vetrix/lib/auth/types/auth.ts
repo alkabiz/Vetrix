@@ -5,26 +5,9 @@ export interface User {
     role: string
 }
 
-export interface RefreshToken {
-    id: string
-    userId: number
-    token: string
-    expiresAt: Date
-    createdAt: Date
-    isRevoked: boolean
-}
+import type { LoginSession, RefreshToken } from "./session"
 
-export interface LoginSession {
-    id: string
-    userId: number
-    accessToken: string
-    refreshToken: string
-    ipAddress: string
-    userAgent: string
-    createdAt: Date
-    lastActivity: Date
-    isActive: boolean
-}
+export type { LoginSession, RefreshToken }
 
 export interface TwoFactorAuth {
     userId: number
