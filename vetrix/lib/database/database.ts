@@ -866,6 +866,9 @@ export interface UserProfile {
   updatedAt: string // ISO datetime
 }
 
+// Role name type (string literals)
+export type RoleName = "admin" | "vet" | "assistant"
+
 // usr_user_roles.interface.ts
 export interface UserRole {
   userId: number // FK → usr_users.id
