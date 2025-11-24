@@ -36,26 +36,6 @@ export const sessionRepo = {
         const stmt = db.prepare(`
       SELECT * FROM user_sessions 
       WHERE access_token = ? AND is_active = 1
-    `)
-        const session = stmt.get(accessToken) as LoginSession | undefined
-        return session || null
-    },
-
-    findSessionById(sessionId: string): LoginSession | null {
-        const db = getDatabase()
-        const stmt = db.prepare(`
-      SELECT * FROM user_sessions 
-      WHERE id = ?
-    `)
-        const session = stmt.get(sessionId) as LoginSession | undefined
-        return session || null
-    },
-
-    updateSessionActivity(sessionId: string): void {
-        const db = getDatabase()
-        const stmt = db.prepare(`
-      UPDATE user_sessions 
-      SET last_activity = ?
       WHERE id = ?
     `)
         stmt.run(new Date().toISOString(), sessionId)
