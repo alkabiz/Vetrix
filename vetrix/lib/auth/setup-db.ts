@@ -36,6 +36,14 @@ db.exec(`
     passwordHash TEXT
   );
 
+  CREATE TABLE IF NOT EXISTS cat_roles (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    isActive INTEGER DEFAULT 1
+  );
+
+  INSERT OR IGNORE INTO cat_roles (id, name) VALUES (1, 'admin');
+
   INSERT OR IGNORE INTO usr_users (id, username, email, roleId) VALUES (1, 'testuser', 'test@example.com', 1);
 
   CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON user_sessions(user_id);
