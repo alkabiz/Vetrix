@@ -1,4 +1,4 @@
-import { UserRole } from "./database/database";
+import { UserRole, RoleName } from "../database/database";
 
 // usr_users.interface.ts
 export interface User {
@@ -81,11 +81,8 @@ export interface UserProfile {
   updatedAt: string; // ISO datetime
 }
 
-// usr_user_roles.interface.ts
-export interface UserRole {
-  userId: number; // FK → usr_users.id
-  roleId: number; // FK → cat_roles.id
-}
+// Re-export UserRole and RoleName from database
+export type { UserRole, RoleName };
 
 export interface AuthUser extends User {
   password_hash: string;
