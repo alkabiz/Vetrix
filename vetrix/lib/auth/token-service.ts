@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken"
 import crypto from "crypto"
 import type { User } from "../types"
 import { authConfig, VALID_ROLES } from "../config/config"
-import { findUserById } from "../mockData"
+import { findUserById } from "../database/database-auth"
 import type { RefreshToken, TokenStore } from "./types/auth"
 
 // In-memory store (replace with Redis/DB in production)
