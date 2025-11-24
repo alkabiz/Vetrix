@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { verifyToken, extractTokenFromRequest, hasPermission } from "../auth"
 import { getUserPermissions } from "./database-auth"
-import type { UserRole } from "../lib/types"
+import type { RoleName } from "../lib/types"
 
 // Tipo para el contexto de autenticación
 export interface AuthContext {
@@ -9,7 +9,7 @@ export interface AuthContext {
     id: number
     username: string
     email: string
-    role: UserRole
+    role: RoleName
     created_at: string
   }
   permissions: string[]
@@ -56,7 +56,7 @@ export function withAuth(handler: AuthenticatedHandler) {
 }
 
 // Middleware de autorización por roles
-export function withRole(allowedRoles: UserRole[]) {
+export function withRole(allowedRoles: RoleName[]) {
   return (handler: AuthenticatedHandler) =>
     withAuth(async (request: NextRequest, context: AuthContext) => {
       const { user } = context
