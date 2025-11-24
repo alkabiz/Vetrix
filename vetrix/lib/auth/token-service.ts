@@ -5,27 +5,8 @@ import { authConfig, VALID_ROLES } from "../config/config"
 import { findUserById } from "../database/database-auth"
 import type { RefreshToken, TokenStore } from "./types/auth"
 
-// In-memory store (replace with Redis/DB in production)
-export const refreshTokens: TokenStore = new Map<string, RefreshToken>()
+// In-memory store for blacklisted tokens (replace with Redis/DB in production)
 const blacklistedTokens = new Set<string>()
-
-export function generateRefreshToken(userId: number): string {
-    const tokenId = crypto.randomUUID()
-    const token = crypto.randomBytes(64).toString("hex")
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
-
-    const refreshToken: RefreshToken = {
-        id: tokenId,
-        userId,
-        token,
-        expiresAt,
-        createdAt: new Date(),
-        isRevoked: false,
-    }
-
-    refreshTokens.set(token, refreshToken)
-    return token
-}
 
 export function generateAccessToken(user: User, sessionId?: string): string {
     if (!VALID_ROLES.includes(user.role as any)) {
@@ -47,36 +28,6 @@ export function generateAccessToken(user: User, sessionId?: string): string {
         authConfig.JWT_SECRET,
         { expiresIn: "15m" }, // Short-lived access tokens
     )
-}
-
-export async function refreshAccessToken(
-    refreshToken: string,
-): Promise<{ accessToken: string; refreshToken: string } | null> {
-    const storedToken = refreshTokens.get(refreshToken)
-
-    if (!storedToken || storedToken.isRevoked || storedToken.expiresAt < new Date()) {
-        console.debug(`[Auth] Refresh failed: Invalid or expired token ${refreshToken.slice(0, 8)}...`)
-        return null
-    }
-
-    const user = await findUserById(storedToken.userId)
-    if (!user) {
-        console.debug(`[Auth] Refresh failed: User ${storedToken.userId} not found`)
-        return null
-    }
-
-    // Generate new tokens
-    const newAccessToken = generateAccessToken(user)
-    const newRefreshToken = generateRefreshToken(user.id)
-
-    // Revoke old refresh token
-    storedToken.isRevoked = true
-    console.debug(`[Auth] Token refreshed for user ${user.id}`)
-
-    return {
-        accessToken: newAccessToken,
-        refreshToken: newRefreshToken,
-    }
 }
 
 export function blacklistToken(token: string): void {
