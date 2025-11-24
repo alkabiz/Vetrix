@@ -1,4 +1,4 @@
-import type { UserRole, User } from "./types"
+import type { UserRole, User } from "./data"
 import { getMockUsers } from "./mockData"
 
 export const validatePasswordPolicy = (password: string): { isValid: boolean; errors: string[] } => {
