@@ -1,3 +1,10 @@
+export interface User {
+    id: number
+    username: string
+    email: string
+    role: string
+}
+
 export interface RefreshToken {
     id: string
     userId: number
