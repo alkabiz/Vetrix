@@ -28,7 +28,7 @@ export function generateRefreshToken(userId: number): string {
 }
 
 export function generateAccessToken(user: User, sessionId?: string): string {
-    if (!VALID_ROLES.includes(user.role)) {
+    if (!VALID_ROLES.includes(user.role as any)) {
         throw new Error("Invalid user role")
     }
 
