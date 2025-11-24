@@ -27,6 +27,17 @@ db.exec(`
     is_revoked INTEGER DEFAULT 0
   );
 
+  CREATE TABLE IF NOT EXISTS usr_users (
+    id INTEGER PRIMARY KEY,
+    username TEXT NOT NULL,
+    email TEXT NOT NULL,
+    roleId INTEGER,
+    statusId INTEGER DEFAULT 1,
+    passwordHash TEXT
+  );
+
+  INSERT OR IGNORE INTO usr_users (id, username, email, roleId) VALUES (1, 'testuser', 'test@example.com', 1);
+
   CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON user_sessions(user_id);
   CREATE INDEX IF NOT EXISTS idx_sessions_token ON user_sessions(access_token);
   CREATE INDEX IF NOT EXISTS idx_sessions_refresh ON user_sessions(refresh_token);
