@@ -1,4 +1,4 @@
-import { getDatabase } from "./database/database"
+import { getDatabase } from "./database"
 import type { User } from "../core/types"
 import bcrypt from "bcryptjs"
 
