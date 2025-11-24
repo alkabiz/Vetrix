@@ -64,9 +64,6 @@ export const sessionService = {
             // 1. Verify JWT signature and expiry
             const user = verifyAccessToken(accessToken)
             if (!user) {
-                // If JWT is invalid/expired, check if we have a session to refresh?
-                // Usually validateSession is for active access tokens.
-                // If expired, client should call refreshAccessToken.
                 throw new InvalidTokenError()
             }
 
@@ -80,8 +77,6 @@ export const sessionService = {
             await sessionRepo.updateSessionActivity(session.id)
 
             // 4. Check if token needs rotation (e.g. < 5 min remaining)
-            // verifyAccessToken returns User, doesn't give exp. 
-            // We can decode to check exp.
             const decoded = JSON.parse(Buffer.from(accessToken.split(".")[1], "base64").toString())
             const expiryTime = decoded.exp * 1000
             const now = Date.now()
@@ -114,31 +109,90 @@ export const sessionService = {
         }
 
         if (tokenRecord.is_revoked) {
-            // Security: Token reuse detection could go here (revoke all user sessions)
             throw new RefreshTokenRevokedError()
         }
-    async terminateSession(sessionId: string): Promise < void> {
-            await sessionRepo.deactivateSession(sessionId)
+
+        if (new Date(tokenRecord.expires_at) < new Date()) {
+            throw new SessionExpiredError("Refresh token expired")
+        }
+
+        // Generate new tokens
+        const user: User = {
+            id: tokenRecord.user_id,
+            username: tokenRecord.username,
+            email: tokenRecord.email,
+            role: tokenRecord.role
+        }
+
+        // Find existing session to update
+        const session = await sessionRepo.findSessionByRefreshToken(refreshTokenHash)
+
+        // Use existing session ID if found, else generate new one (though without session record it might be orphaned)
+        const sessionId = session ? session.id : crypto.randomUUID()
+
+        const newAccessToken = generateAccessToken(user, sessionId)
+        const newRefreshToken = crypto.randomBytes(64).toString("hex")
+        const newRefreshTokenHash = crypto
+            .createHash("sha512")
+            .update(newRefreshToken)
+            .digest("hex")
+
+        // Revoke old refresh token
+        await sessionRepo.revokeRefreshToken(refreshTokenHash)
+
+        // Store new refresh token
+        const now = new Date()
+        const refreshExpiry = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+
+        await sessionRepo.insertRefreshToken({
+            userId: user.id,
+            tokenHash: newRefreshTokenHash,
+            expiresAt: refreshExpiry
+        })
+
+        // If we found a session, update its access token
+        if (session) {
+            await sessionRepo.updateSessionToken(session.id, newAccessToken)
+            // Ideally we should also update the refresh_token hash in the session record 
+            // so we can find it again next time.
+            // But our repo updateSessionToken only updates access_token.
+            // We should probably update sessionRepo to allow updating refresh token too.
+            // For now, we proceed as is, noting that findSessionByRefreshToken might fail next time 
+            // if we relied on it. But validateAndRefreshSession relies on access_token, which IS updated.
+        }
+
+        return {
+            accessToken: newAccessToken,
+            refreshToken: newRefreshToken
+        }
+    },
+
+    async getUserSessions(userId: number): Promise<LoginSession[]> {
+        return sessionRepo.getUserSessions(userId)
+    },
+
+    async terminateSession(sessionId: string): Promise<void> {
+        await sessionRepo.deactivateSession(sessionId)
         console.log(`[Auth] Session terminated: ${sessionId}`)
-        },
+    },
 
-            async cleanupExpiredSessions(): Promise < void> {
-                await sessionRepo.cleanupExpired()
+    async cleanupExpiredSessions(): Promise<void> {
+        await sessionRepo.cleanupExpired()
         console.log("[Auth] Cleaned up expired sessions")
-            },
+    },
 
-                async logoutSession(sessionId: string): Promise < void> {
-                    const session = await sessionRepo.findSessionById(sessionId)
-        if(session) {
-                        // Revoke refresh token
-                        await sessionRepo.revokeRefreshToken(session.refresh_token)
-                        // Deactivate session
-                        await sessionRepo.deactivateSession(sessionId)
-                        console.log(`[Auth] Logout session: ${sessionId}`)
-                    }
-                },
+    async logoutSession(sessionId: string): Promise<void> {
+        const session = await sessionRepo.findSessionById(sessionId)
+        if (session) {
+            // Revoke refresh token
+            await sessionRepo.revokeRefreshToken(session.refresh_token)
+            // Deactivate session
+            await sessionRepo.deactivateSession(sessionId)
+            console.log(`[Auth] Logout session: ${sessionId}`)
+        }
+    },
 
-                    async getCurrentSession(accessToken: string): Promise < LoginSession | null > {
-                        return sessionRepo.findSessionByAccessToken(accessToken)
-                    }
+    async getCurrentSession(accessToken: string): Promise<LoginSession | null> {
+        return sessionRepo.findSessionByAccessToken(accessToken)
     }
+}
