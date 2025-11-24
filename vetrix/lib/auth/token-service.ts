@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken"
 import crypto from "crypto"
-import type { User } from "../types"
+import type { User } from "./types/auth"
 import { authConfig, VALID_ROLES } from "../config/config"
 import { findUserById } from "../database/database-auth"
 import type { RefreshToken, TokenStore } from "./types/auth"
