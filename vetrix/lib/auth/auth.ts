@@ -1,5 +1,4 @@
-import type { UserRole, User } from "./data"
-import { getMockUsers } from "./mockData"
+import type { RoleName, User } from "../database/database"
 
 export const validatePasswordPolicy = (password: string): { isValid: boolean; errors: string[] } => {
   const errors: string[] = []
@@ -64,7 +63,7 @@ export const validateUserData = (userData: {
     }
   }
 
-  if (userData.role && !validRoles.includes(userData.role as UserRole)) {
+  if (userData.role && !validRoles.includes(userData.role as RoleName)) {
     errors.push(`Rol no válido. Debe ser uno de los siguientes: ${validRoles.join(", ")}`)
   }
 
@@ -84,8 +83,8 @@ export function extractTokenFromRequest(request: Request): string | null {
   return authHeader.substring(7) // Remove 'Bearer ' prefix
 }
 
-export function hasPermission(userRole: UserRole, requiredPermission: string): boolean {
-  const rolePermissions: Record<UserRole, string[]> = {
+export function hasPermission(userRole: RoleName, requiredPermission: string): boolean {
+  const rolePermissions: Record<RoleName, string[]> = {
     admin: [
       "manage_users",
       "manage_medical_records",
@@ -120,7 +119,7 @@ export function hasPermission(userRole: UserRole, requiredPermission: string): b
 }
 
 export async function getAllUsers(): Promise<User[]> {
-  return getMockUsers()
+  return await getAllUsers()
 }
 
 export async function findUserById(id: number): Promise<User | null> {
@@ -132,19 +131,55 @@ export async function createUser(userData: {
   username: string
   email: string
   password: string
-  role: UserRole
+  role: RoleName
 }): Promise<User> {
   const { hashPassword } = await import("./auth-server")
   const passwordHash = await hashPassword(userData.password)
 
+  // Map role name to roleId (this is a simplified mock mapping)
+  const roleIdMap: Record<RoleName, number> = {
+    admin: 1,
+    vet: 2,
+    assistant: 3,
+  }
+
   // In a real app, this would save to database
+  const now = new Date().toISOString()
   const newUser: User = {
     id: Date.now(), // Simple ID generation for mock
     username: userData.username,
     email: userData.email,
-    password_hash: passwordHash,
-    role: userData.role,
-    created_at: new Date().toISOString(),
+    passwordHash: passwordHash,
+    roleId: roleIdMap[userData.role],
+    statusId: 1, // Default to active status
+    veterinarianId: null,
+    lastLogin: null,
+    lastLoginIp: null,
+    currentSessionId: null,
+    failedLoginAttempts: 0,
+    lockedUntil: null,
+    passwordChangedAt: now,
+    passwordExpiresAt: null,
+    mustChangePassword: false,
+    passwordHistory: null,
+    twoFactorEnabled: false,
+    twoFactorSecret: null,
+    backupCodes: null,
+    twoFactorVerifiedAt: null,
+    sessionTimeoutMinutes: 30,
+    timezone: "America/Bogota",
+    preferredLanguage: "es",
+    emailNotifications: true,
+    smsNotifications: false,
+    notificationPreferences: null,
+    isEmailVerified: false,
+    emailVerificationToken: null,
+    emailVerifiedAt: null,
+    apiAccessEnabled: false,
+    apiKeyHash: null,
+    apiLastUsed: null,
+    createdAt: now,
+    updatedAt: now,
   }
 
   return newUser

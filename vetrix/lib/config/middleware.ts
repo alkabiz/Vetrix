@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { verifyToken, extractTokenFromRequest, hasPermission } from "../auth"
-import { getUserPermissions } from "./database-auth"
-import type { RoleName } from "../lib/types"
+import { getUserPermissions } from "../database/database-auth"
+import type { RoleName } from "../core/types"
 
 // Tipo para el contexto de autenticación
 export interface AuthContext {

@@ -1,8 +1,8 @@
-import { UserRole } from '../database/';
+import { RoleName } from '../database/database';
 
 // Función genérica para crear verificadores de permisos
-const createPermissionChecker = (allowedRoles: UserRole[]) => 
-  (role: UserRole): boolean => allowedRoles.includes(role);
+const createPermissionChecker = (allowedRoles: RoleName[]) =>
+  (role: RoleName): boolean => allowedRoles.includes(role);
 
 // Sistema de permisos más limpio y mantenible
 export const permissions = {
@@ -27,20 +27,20 @@ export const permissions = {
   canRead: createPermissionChecker(['admin', 'vet', 'assistant']),
   canWrite: createPermissionChecker(['admin', 'vet', 'assistant']),
   canDelete: createPermissionChecker(['admin', 'vet']),
-  
+
   // Permisos específicos por recurso
-  canViewMedicalRecords: (role: UserRole, isOwner: boolean = false): boolean => {
+  canViewMedicalRecords: (role: RoleName, isOwner: boolean = false): boolean => {
     return permissions.canManageMedicalRecords(role) || (role === 'assistant' && isOwner);
   },
-  
+
   canEditInvoices: createPermissionChecker(['admin', 'vet']),
   canViewReports: createPermissionChecker(['admin', 'vet']),
 } as const;
 
 // Verificador de permisos por recurso
 export const checkResourcePermission = (
-  userRole: UserRole, 
-  action: keyof typeof permissions, 
+  userRole: RoleName,
+  action: keyof typeof permissions,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   additionalContext?: any
 ): boolean => {
