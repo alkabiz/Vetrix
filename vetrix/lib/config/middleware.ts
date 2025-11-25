@@ -10,7 +10,7 @@ export interface AuthContext {
     username: string
     email: string
     role: RoleName
-    created_at: string
+    created_at?: string
   }
   permissions: string[]
 }

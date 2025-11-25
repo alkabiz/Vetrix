@@ -1,8 +1,10 @@
+import { RoleName } from "../../core/types"
+
 export interface User {
     id: number
     username: string
     email: string
-    role: string
+    role: RoleName
 }
 
 import type { LoginSession, RefreshToken } from "./session"

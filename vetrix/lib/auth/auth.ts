@@ -133,7 +133,7 @@ export async function createUser(userData: {
   password: string
   role: RoleName
 }): Promise<User> {
-  const { hashPassword } = await import("./auth-server")
+  const { hashPassword } = await import("./password-service")
   const passwordHash = await hashPassword(userData.password)
 
   // Map role name to roleId (this is a simplified mock mapping)
@@ -195,4 +195,4 @@ export async function findUserByUsername(username: string): Promise<User | null>
   return users.find((user) => user.username === username) || null
 }
 
-export { generateToken, verifyToken } from "./auth-server"
+export { generateAccessToken as generateToken, verifyAccessToken as verifyToken } from "./token-service"
