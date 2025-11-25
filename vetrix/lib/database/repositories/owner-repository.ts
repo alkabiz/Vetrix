@@ -1,3 +1,4 @@
+import Database from "better-sqlite3"
 import { getDatabase } from "../database"
 import { Owner } from "../types/common.types"
 

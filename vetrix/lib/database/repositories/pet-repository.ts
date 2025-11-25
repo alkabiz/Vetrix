@@ -1,3 +1,4 @@
+import Database from "better-sqlite3"
 import { getDatabase } from "../database"
 import { Pet } from "../types/common.types"
 
