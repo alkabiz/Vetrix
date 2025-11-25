@@ -324,9 +324,9 @@ export interface ApiActionMeta {
 // ============================================================================
 
 /**
- * Validation rule types
+ * API validation rule types (basic string union)
  */
-export type ValidationRule =
+export type ApiValidationRuleType =
     | "required"
     | "email"
     | "phone"
@@ -345,15 +345,15 @@ export type ValidationRule =
  * Validation constraint definition
  */
 export interface ValidationConstraint {
-    readonly rule: ValidationRule
+    readonly rule: ApiValidationRuleType
     readonly value?: unknown
     readonly message?: string
 }
 
 /**
- * Schema validation result
+ * Schema validation result for API requests
  */
-export interface ValidationResult {
+export interface ApiValidationResult {
     readonly isValid: boolean
     readonly errors: Record<string, string[]>
 }
