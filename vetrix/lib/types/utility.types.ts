@@ -74,6 +74,8 @@ export type OptionalKeys<T> = {
 // Timestamp & Audit Types
 // ============================================================================
 
+import type { AuditMetadata } from "./common.types"
+
 /**
  * Adds createdAt and updatedAt timestamp fields to type T
  * @example Timestamped<{ name: string }> => { name: string; createdAt: Date; updatedAt: Date }
@@ -84,17 +86,8 @@ export type Timestamped<T> = T & {
 }
 
 /**
- * Complete audit metadata including timestamps and user tracking
- */
-export interface AuditMetadata {
-    readonly createdAt: Date
-    readonly updatedAt: Date
-    readonly createdBy?: number
-    readonly updatedBy?: number
-}
-
-/**
  * Adds full audit metadata to type T
+ * Uses AuditMetadata from common.types which includes soft-delete support
  */
 export type Auditable<T> = T & AuditMetadata
 
