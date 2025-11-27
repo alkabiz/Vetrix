@@ -13,10 +13,14 @@ export interface AuthContext {
     created_at?: string
   }
   permissions: string[]
+  params?: Record<string, string> // Support for Next.js dynamic route params
 }
 
-// Tipo para handlers autenticados
-export type AuthenticatedHandler = (request: NextRequest, context: AuthContext) => Promise<NextResponse>
+// Tipo para handlers autenticados - compatible with Next.js route handlers
+export type AuthenticatedHandler<TContext = AuthContext> = (
+  request: NextRequest,
+  context: TContext
+) => Promise<NextResponse>
 
 // Manejo centralizado de errores
 const createErrorResponse = (message: string, status: number) => {
@@ -24,8 +28,10 @@ const createErrorResponse = (message: string, status: number) => {
   return NextResponse.json({ error: message }, { status })
 }
 
-export function withAuth(handler: AuthenticatedHandler) {
-  return async (request: NextRequest): Promise<NextResponse> => {
+export function withAuth<TContext extends { params?: Record<string, string> } = AuthContext>(
+  handler: AuthenticatedHandler<TContext & AuthContext>
+) {
+  return async (request: NextRequest, context?: TContext): Promise<NextResponse> => {
     try {
       const token =
         extractTokenFromRequest(request) ||
@@ -44,8 +50,12 @@ export function withAuth(handler: AuthenticatedHandler) {
 
       const permissions = await getUserPermissions(user.id)
 
-      // Crear contexto de autenticación
-      const authContext: AuthContext = { user, permissions }
+      // Merge Next.js context (with params) and authentication context
+      const authContext = {
+        user,
+        permissions,
+        ...context // Preserve params and any other Next.js context
+      } as TContext & AuthContext
 
       return handler(request, authContext)
     } catch (error) {
@@ -56,9 +66,11 @@ export function withAuth(handler: AuthenticatedHandler) {
 }
 
 // Middleware de autorización por roles
-export function withRole(allowedRoles: RoleName[]) {
-  return (handler: AuthenticatedHandler) =>
-    withAuth(async (request: NextRequest, context: AuthContext) => {
+export function withRole<TContext extends { params?: Record<string, string> } = AuthContext>(
+  allowedRoles: RoleName[]
+) {
+  return (handler: AuthenticatedHandler<TContext & AuthContext>) =>
+    withAuth<TContext>(async (request: NextRequest, context: TContext & AuthContext) => {
       const { user } = context
 
       if (!allowedRoles.includes(user.role)) {
@@ -69,9 +81,11 @@ export function withRole(allowedRoles: RoleName[]) {
     })
 }
 
-export function withPermission(requiredPermission: string) {
-  return (handler: AuthenticatedHandler) =>
-    withAuth(async (request: NextRequest, context: AuthContext) => {
+export function withPermission<TContext extends { params?: Record<string, string> } = AuthContext>(
+  requiredPermission: string
+) {
+  return (handler: AuthenticatedHandler<TContext & AuthContext>) =>
+    withAuth<TContext>(async (request: NextRequest, context: TContext & AuthContext) => {
       const { user, permissions } = context
 
       // Check both role-based and database permissions
@@ -86,9 +100,11 @@ export function withPermission(requiredPermission: string) {
     })
 }
 
-export function withAnyPermission(requiredPermissions: string[]) {
-  return (handler: AuthenticatedHandler) =>
-    withAuth(async (request: NextRequest, context: AuthContext) => {
+export function withAnyPermission<TContext extends { params?: Record<string, string> } = AuthContext>(
+  requiredPermissions: string[]
+) {
+  return (handler: AuthenticatedHandler<TContext & AuthContext>) =>
+    withAuth<TContext>(async (request: NextRequest, context: TContext & AuthContext) => {
       const { user, permissions } = context
 
       const hasAnyPermission = requiredPermissions.some(
@@ -103,18 +119,51 @@ export function withAnyPermission(requiredPermissions: string[]) {
     })
 }
 
-// Shortcuts de middleware más legibles
-export const requireAdmin = withRole(["admin"])
-export const requireVetOrAdmin = withRole(["admin", "vet"])
-export const requireAnyRole = withRole(["admin", "vet", "assistant"])
+// Shortcuts de middleware más legibles - now generic for dynamic routes
+export const requireAdmin = <TContext extends { params?: Record<string, string> } = AuthContext>(
+  handler: AuthenticatedHandler<TContext & AuthContext>
+) => withRole<TContext>(["admin"])(handler)
 
-export const requireMedicalAccess = withPermission("manage_medical_records")
-export const requireUserManagement = withPermission("manage_users")
-export const requireDeletePermission = withAnyPermission(["delete_medical_records", "delete_pets", "delete_owners"])
-export const requireInvoiceAccess = withPermission("manage_invoices")
-export const requireAppointmentAccess = withPermission("manage_appointments")
+export const requireVetOrAdmin = <TContext extends { params?: Record<string, string> } = AuthContext>(
+  handler: AuthenticatedHandler<TContext & AuthContext>
+) => withRole<TContext>(["admin", "vet"])(handler)
 
-export const requirePetAccess = withPermission("manage_pets")
-export const requireOwnerAccess = withPermission("manage_owners")
-export const requireReportAccess = withPermission("view_reports")
-export const requireAdminPanel = withPermission("access_admin_panel")
+export const requireAnyRole = <TContext extends { params?: Record<string, string> } = AuthContext>(
+  handler: AuthenticatedHandler<TContext & AuthContext>
+) => withRole<TContext>(["admin", "vet", "assistant"])(handler)
+
+export const requireMedicalAccess = <TContext extends { params?: Record<string, string> } = AuthContext>(
+  handler: AuthenticatedHandler<TContext & AuthContext>
+) => withPermission<TContext>("manage_medical_records")(handler)
+
+export const requireUserManagement = <TContext extends { params?: Record<string, string> } = AuthContext>(
+  handler: AuthenticatedHandler<TContext & AuthContext>
+) => withPermission<TContext>("manage_users")(handler)
+
+export const requireDeletePermission = <TContext extends { params?: Record<string, string> } = AuthContext>(
+  handler: AuthenticatedHandler<TContext & AuthContext>
+) => withAnyPermission<TContext>(["delete_medical_records", "delete_pets", "delete_owners"])(handler)
+
+export const requireInvoiceAccess = <TContext extends { params?: Record<string, string> } = AuthContext>(
+  handler: AuthenticatedHandler<TContext & AuthContext>
+) => withPermission<TContext>("manage_invoices")(handler)
+
+export const requireAppointmentAccess = <TContext extends { params?: Record<string, string> } = AuthContext>(
+  handler: AuthenticatedHandler<TContext & AuthContext>
+) => withPermission<TContext>("manage_appointments")(handler)
+
+export const requirePetAccess = <TContext extends { params?: Record<string, string> } = AuthContext>(
+  handler: AuthenticatedHandler<TContext & AuthContext>
+) => withPermission<TContext>("manage_pets")(handler)
+
+export const requireOwnerAccess = <TContext extends { params?: Record<string, string> } = AuthContext>(
+  handler: AuthenticatedHandler<TContext & AuthContext>
+) => withPermission<TContext>("manage_owners")(handler)
+
+export const requireReportAccess = <TContext extends { params?: Record<string, string> } = AuthContext>(
+  handler: AuthenticatedHandler<TContext & AuthContext>
+) => withPermission<TContext>("view_reports")(handler)
+
+export const requireAdminPanel = <TContext extends { params?: Record<string, string> } = AuthContext>(
+  handler: AuthenticatedHandler<TContext & AuthContext>
+) => withPermission<TContext>("access_admin_panel")(handler)
