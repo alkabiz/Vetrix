@@ -11,9 +11,17 @@ export const petSchema = z.object({
     notes: z.string().max(1000, "Notes cannot exceed 1000 characters").optional(),
 })
 
+export const petUpdateSchema = petSchema.partial()
+
 export type PetInput = z.infer<typeof petSchema>
+export type PetUpdateInput = z.infer<typeof petUpdateSchema>
 
 export async function validatePet(request: Request): Promise<PetInput> {
     const body = await request.json()
     return petSchema.parse(body)
+}
+
+export async function validatePetUpdate(request: Request): Promise<PetUpdateInput> {
+    const body = await request.json()
+    return petUpdateSchema.parse(body)
 }
