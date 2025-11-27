@@ -10,9 +10,17 @@ export const medicalRecordSchema = z.object({
     notes: z.string().max(1000, "Notes cannot exceed 1000 characters").optional(),
 })
 
+export const medicalRecordUpdateSchema = medicalRecordSchema.partial()
+
 export type MedicalRecordInput = z.infer<typeof medicalRecordSchema>
+export type MedicalRecordUpdateInput = z.infer<typeof medicalRecordUpdateSchema>
 
 export async function validateMedicalRecord(request: Request): Promise<MedicalRecordInput> {
     const body = await request.json()
     return medicalRecordSchema.parse(body)
+}
+
+export async function validateMedicalRecordUpdate(request: Request): Promise<MedicalRecordUpdateInput> {
+    const body = await request.json()
+    return medicalRecordUpdateSchema.parse(body)
 }
