@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { apiClient } from "@/lib/api/clients/api-clients/api-client"
 import { toast } from "@/hooks/use-toast"
-import type { Appointment } from "@/lib/database/database"
+import type { AppointmentDTO, CreateAppointmentDTO, UpdateAppointmentDTO } from "@/lib/api/types/appointment.types"
 
 // Query keys for better cache management
 export const appointmentKeys = {
@@ -43,7 +43,7 @@ export function useCreateAppointment() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (appointment: Omit<Appointment, "id">) => {
+    mutationFn: async (appointment: CreateAppointmentDTO) => {
       const { data } = await apiClient.post("/appointments", appointment)
       return data
     },
@@ -71,7 +71,7 @@ export function useUpdateAppointment() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ id, ...appointment }: Partial<Appointment> & { id: string }) => {
+    mutationFn: async ({ id, ...appointment }: Omit<UpdateAppointmentDTO, "id"> & { id: string }) => {
       const { data } = await apiClient.put(`/appointments/${id}`, appointment)
       return data
     },
