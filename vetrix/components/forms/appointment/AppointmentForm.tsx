@@ -34,7 +34,7 @@ export function AppointmentForm({
 
   // Generate default form data for new appointments
   const defaultFormData = useMemo((): AppointmentFormData => {
-    const appointmentNumber = APPOINTMENT_FORM_CONFIG.autoGenerateAppointmentNumber 
+    const appointmentNumber = APPOINTMENT_FORM_CONFIG.autoGenerateAppointmentNumber
       ? `APT${Date.now().toString().slice(-6)}`
       : ""
 
@@ -127,8 +127,8 @@ export function AppointmentForm({
       }
     }
 
-    if (formData.durationMinutes < APPOINTMENT_FORM_CONFIG.minDuration || 
-        formData.durationMinutes > APPOINTMENT_FORM_CONFIG.maxDuration) {
+    if (formData.durationMinutes < APPOINTMENT_FORM_CONFIG.minDuration ||
+      formData.durationMinutes > APPOINTMENT_FORM_CONFIG.maxDuration) {
       newErrors.durationMinutes = `Duration must be between ${APPOINTMENT_FORM_CONFIG.minDuration} and ${APPOINTMENT_FORM_CONFIG.maxDuration} minutes`
     }
 
@@ -146,7 +146,7 @@ export function AppointmentForm({
     value: AppointmentFormData[K]
   ) => {
     setFormData(prev => ({ ...prev, [field]: value }))
-    
+
     // Clear error for this field when user starts typing
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: undefined }))
@@ -156,7 +156,7 @@ export function AppointmentForm({
   // Form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!validateForm()) {
       toast({
         title: "Validation Error",
@@ -174,7 +174,7 @@ export function AppointmentForm({
         petId: formData.petId as number,
         ownerId: formData.ownerId as number,
         veterinarianId: formData.veterinarianId || undefined,
-        appointmentDatetime: new Date(formData.appointmentDatetime),
+        appointmentDatetime: new Date(formData.appointmentDatetime).toISOString(),
         appointmentDate: formData.appointmentDatetime.split("T")[0],
         durationMinutes: formData.durationMinutes,
         statusId: formData.statusId,
@@ -184,37 +184,27 @@ export function AppointmentForm({
         isFollowUp: formData.isFollowUp,
         parentAppointmentId: formData.parentAppointmentId || undefined,
         petConditionOnArrival: formData.petConditionOnArrival || undefined,
-        checkInTime: undefined,
-        actualStartTime: undefined,
-        actualEndTime: undefined,
-        waitingTimeMinutes: undefined,
         reminderSent: formData.reminderSent,
-        reminderSentAt: undefined,
         confirmationRequired: formData.confirmationRequired,
         isConfirmed: formData.isConfirmed,
-        confirmedAt: formData.isConfirmed ? new Date() : undefined,
         followUpRequired: formData.followUpRequired,
         followUpDate: formData.followUpDate || undefined,
         followUpReason: formData.followUpReason || undefined,
         estimatedCost: formData.estimatedCost || undefined,
         actualCost: formData.actualCost || undefined,
-        cancellationReason: undefined,
-        cancelledAt: undefined,
-        cancelledBy: undefined,
-        rescheduledFromId: undefined,
         notes: formData.notes || undefined,
         internalNotes: formData.internalNotes || undefined,
       }
 
       await onSubmit(appointmentData)
-      
+
       toast({
         title: "Success",
-        description: appointment 
-          ? "Appointment updated successfully" 
+        description: appointment
+          ? "Appointment updated successfully"
           : "Appointment scheduled successfully",
       })
-      
+
       onOpenChange(false)
     } catch (error) {
       console.error("Error submitting appointment:", error)
@@ -236,8 +226,8 @@ export function AppointmentForm({
             {appointment ? "Edit Appointment" : "Schedule New Appointment"}
           </DialogTitle>
           <DialogDescription>
-            {appointment 
-              ? "Update the appointment details below." 
+            {appointment
+              ? "Update the appointment details below."
               : "Enter the appointment information below."}
           </DialogDescription>
         </DialogHeader>
@@ -249,7 +239,7 @@ export function AppointmentForm({
             owners={owners}
             veterinarians={veterinarians}
             filteredPets={filteredPets}
-            onFieldChange={handleFieldChange} pets={[]}          />
+            onFieldChange={handleFieldChange} pets={[]} />
 
           <SchedulingSection
             formData={formData}
@@ -277,20 +267,20 @@ export function AppointmentForm({
           />
 
           <div className="flex justify-end gap-2 pt-4">
-            <Button 
-              type="button" 
-              variant="outline" 
+            <Button
+              type="button"
+              variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={isSubmitting}
             >
               Cancel
             </Button>
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={isSubmitting}
             >
-              {isSubmitting 
-                ? "Saving..." 
+              {isSubmitting
+                ? "Saving..."
                 : appointment ? "Update Appointment" : "Schedule Appointment"}
             </Button>
           </div>
