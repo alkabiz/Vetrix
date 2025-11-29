@@ -13,15 +13,35 @@ export interface AppointmentEntity {
 
 export interface AppointmentDTO {
     id: number
+    appointmentNumber: string
     petId: number
     ownerId: number
+    veterinarianId?: number | null
     petName?: string
     ownerName?: string
+    veterinarianName?: string
     date: string
     time: string
+    appointmentDatetime: string
+    durationMinutes: number
     reason: string
     status: string
+    statusId: number
+    typeId: number
+    priorityId: number
     notes?: string | null
+    internalNotes?: string | null
+    isFollowUp: boolean
+    parentAppointmentId?: number | null
+    petConditionOnArrival?: string | null
+    reminderSent: boolean
+    confirmationRequired: boolean
+    isConfirmed: boolean
+    followUpRequired: boolean
+    followUpDate?: string | null
+    followUpReason?: string | null
+    estimatedCost?: number | null
+    actualCost?: number | null
     createdAt: string
     updatedAt: string
 }
