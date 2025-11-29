@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { apiClient } from "@/lib/api/clients/api-clients/api-client"
 import { toast } from "@/hooks/use-toast"
-import type { Pet } from "@/lib/database/database"
+import type { PetDTO } from "@/lib/api/types/pet.types"
 
 // Query keys for better cache management
 export const petKeys = {
@@ -43,7 +43,7 @@ export function useCreatePet() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (pet: Omit<Pet, "id">) => {
+    mutationFn: async (pet: Omit<PetDTO, "id">) => {
       const { data } = await apiClient.post("/pets", pet)
       return data
     },
@@ -70,7 +70,7 @@ export function useUpdatePet() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ id, ...pet }: Partial<Pet> & { id: string }) => {
+    mutationFn: async ({ id, ...pet }: Omit<Partial<PetDTO>, "id"> & { id: string }) => {
       const { data } = await apiClient.put(`/pets/${id}`, pet)
       return data
     },
