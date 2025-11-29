@@ -2,158 +2,39 @@
 
 import { useState } from "react"
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
-import { DataTable } from "@/components/ui/data-table"
 import { AppointmentForm } from "@/components/forms/appointment/AppointmentForm"
-import { Badge } from "@/components/ui/badge"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
-import { Calendar, Clock, User, Heart } from "lucide-react"
-import type { Appointment, Owner, Pet } from "@/lib/database/database"
 import { AuthWrapper } from "@/components/auth/auth-wrapper"
 import { ProtectedRoute } from "@/components/auth/protected-route"
 import { useAuth } from "@/contexts/auth-context"
-
-const mockOwners: Owner[] = [
-  {
-    id: 1,
-    name: "John Smith",
-    phone: "(555) 123-4567",
-    email: "john.smith@email.com",
-    address: "123 Main St, Anytown, ST 12345",
-    created_at: "2024-01-15T10:30:00Z",
-    updated_at: "2024-01-15T10:30:00Z",
-  },
-  {
-    id: 2,
-    name: "Sarah Johnson",
-    phone: "(555) 987-6543",
-    email: "sarah.j@email.com",
-    address: "456 Oak Ave, Somewhere, ST 67890",
-    created_at: "2024-01-20T14:15:00Z",
-    updated_at: "2024-01-20T14:15:00Z",
-  },
-  {
-    id: 3,
-    name: "Mike Wilson",
-    phone: "(555) 456-7890",
-    email: "mike.wilson@email.com",
-    address: "789 Pine Rd, Elsewhere, ST 54321",
-    created_at: "2024-02-01T09:45:00Z",
-    updated_at: "2024-02-01T09:45:00Z",
-  },
-]
-
-const mockPets: Pet[] = [
-  {
-    id: 1,
-    name: "Buddy",
-    species: "Dog",
-    breed: "Golden Retriever",
-    sex: "Male",
-    age: 5,
-    weight: 65,
-    owner_id: 1,
-    owner_name: "John Smith",
-    created_at: "2024-01-15T11:00:00Z",
-    updated_at: "2024-01-15T11:00:00Z",
-  },
-  {
-    id: 2,
-    name: "Luna",
-    species: "Cat",
-    breed: "Siamese",
-    sex: "Female",
-    age: 3,
-    weight: 8,
-    owner_id: 2,
-    owner_name: "Sarah Johnson",
-    created_at: "2024-01-20T15:30:00Z",
-    updated_at: "2024-01-20T15:30:00Z",
-  },
-  {
-    id: 3,
-    name: "Max",
-    species: "Dog",
-    breed: "German Shepherd",
-    sex: "Male",
-    age: 7,
-    weight: 75,
-    owner_id: 3,
-    owner_name: "Mike Wilson",
-    created_at: "2024-02-01T10:15:00Z",
-    updated_at: "2024-02-01T10:15:00Z",
-  },
-  {
-    id: 4,
-    name: "Whiskers",
-    species: "Cat",
-    breed: "Persian",
-    sex: "Female",
-    age: 2,
-    weight: 10,
-    owner_id: 1,
-    owner_name: "John Smith",
-    created_at: "2024-02-05T14:20:00Z",
-    updated_at: "2024-02-05T14:20:00Z",
-  },
-]
-
-const mockAppointments: Appointment[] = [
-  {
-    id: 1,
-    pet_id: 1,
-    pet_name: "Buddy",
-    owner_id: 1,
-    owner_name: "John Smith",
-    appointment_date: "2024-02-15",
-    appointment_time: "10:00",
-    reason: "Annual checkup",
-    assigned_vet: "Dr. Smith",
-    status: "pending",
-    created_at: "2024-02-10T09:00:00Z",
-    updated_at: "2024-02-10T09:00:00Z",
-  },
-  {
-    id: 2,
-    pet_id: 2,
-    pet_name: "Luna",
-    owner_id: 2,
-    owner_name: "Sarah Johnson",
-    appointment_date: "2024-02-16",
-    appointment_time: "14:30",
-    reason: "Vaccination",
-    assigned_vet: "Dr. Johnson",
-    status: "completed",
-    created_at: "2024-02-11T11:30:00Z",
-    updated_at: "2024-02-16T15:00:00Z",
-  },
-  {
-    id: 3,
-    pet_id: 3,
-    pet_name: "Max",
-    owner_id: 3,
-    owner_name: "Mike Wilson",
-    appointment_date: "2024-02-17",
-    appointment_time: "09:15",
-    reason: "Dental cleaning",
-    assigned_vet: "Dr. Brown",
-    status: "pending",
-    created_at: "2024-02-12T16:45:00Z",
-    updated_at: "2024-02-12T16:45:00Z",
-  },
-]
+import {
+  useAppointments,
+  useCreateAppointment,
+  useUpdateAppointment,
+  useDeleteAppointment
+} from "@/hooks/api/use-appointments"
+import { useOwners } from "@/hooks/api/use-owners"
+import { usePets } from "@/hooks/api/use-pets"
+import { AppointmentsTable } from "./components/AppointmentsTable"
+import { AppointmentStats } from "./components/AppointmentStats"
+import { AppointmentFilters } from "./components/AppointmentFilters"
+import type { AppointmentDTO, CreateAppointmentDTO, UpdateAppointmentDTO } from "@/lib/api/types/appointment.types"
 
 export default function AppointmentsPage() {
-  const [appointments, setAppointments] = useState<Appointment[]>(mockAppointments)
-  const [owners, setOwners] = useState<Owner[]>(mockOwners)
-  const [pets, setPets] = useState<Pet[]>(mockPets)
-  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
+  const [selectedAppointment, setSelectedAppointment] = useState<AppointmentDTO | null>(null)
   const [isFormOpen, setIsFormOpen] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const { toast } = useToast()
   const { user } = useAuth()
+
+  // API Hooks
+  const { data: appointments = [], isLoading: isLoadingAppointments } = useAppointments()
+  const { data: owners = [] } = useOwners()
+  const { data: pets = [] } = usePets()
+
+  const createAppointmentMutation = useCreateAppointment()
+  const updateAppointmentMutation = useUpdateAppointment()
+  const deleteAppointmentMutation = useDeleteAppointment()
 
   const canDelete = user?.role === "admin" || user?.role === "vet"
   const canEdit = user?.role === "admin" || user?.role === "vet" || user?.role === "assistant"
@@ -172,7 +53,7 @@ export default function AppointmentsPage() {
     setIsFormOpen(true)
   }
 
-  const handleEditAppointment = (appointment: Appointment) => {
+  const handleEditAppointment = (appointment: AppointmentDTO) => {
     if (!canEdit) {
       toast({
         title: "Acceso denegado",
@@ -185,7 +66,7 @@ export default function AppointmentsPage() {
     setIsFormOpen(true)
   }
 
-  const handleDeleteAppointment = async (appointment: Appointment) => {
+  const handleDeleteAppointment = async (appointment: AppointmentDTO) => {
     if (!canDelete) {
       toast({
         title: "Acceso denegado",
@@ -195,158 +76,49 @@ export default function AppointmentsPage() {
       return
     }
 
-    if (!confirm(`¿Está seguro de que desea eliminar esta cita para ${appointment.pet_name}?`)) {
+    if (!confirm(`¿Está seguro de que desea eliminar esta cita para ${appointment.petName}?`)) {
       return
     }
 
-    setAppointments(appointments.filter((a) => a.id !== appointment.id))
-    toast({
-      title: "Éxito",
-      description: "Cita eliminada con éxito.",
-    })
-  }
-
-  const handleSubmitAppointment = async (
-    appointmentData: Omit<Appointment, "id" | "created_at" | "updated_at" | "pet_name" | "owner_name">,
-  ) => {
-    const pet = pets.find((p) => p.id === appointmentData.pet_id)
-    const owner = owners.find((o) => o.id === appointmentData.owner_id)
-
-    if (selectedAppointment) {
-      // Update existing appointment
-      const updatedAppointment = {
-        ...selectedAppointment,
-        ...appointmentData,
-        pet_name: pet?.name || "",
-        owner_name: owner?.name || "",
-        updated_at: new Date().toISOString(),
-      }
-      setAppointments(appointments.map((a) => (a.id === selectedAppointment.id ? updatedAppointment : a)))
+    try {
+      await deleteAppointmentMutation.mutateAsync(appointment.id)
       toast({
         title: "Éxito",
-        description: "Cita actualizada con éxito.",
+        description: "Cita eliminada con éxito.",
       })
-    } else {
-      // Add new appointment
-      const newAppointment: Appointment = {
-        id: Math.max(...appointments.map((a) => a.id)) + 1,
-        ...appointmentData,
-        pet_name: pet?.name || "",
-        owner_name: owner?.name || "",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      }
-      setAppointments([...appointments, newAppointment])
-      toast({
-        title: "Éxito",
-        description: "Cita programada con éxito.",
-      })
-    }
-    setIsFormOpen(false)
-  }
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "pending":
-        return <Badge variant="default">Pendiente</Badge>
-      case "completed":
-        return <Badge variant="secondary">Terminado</Badge>
-      case "canceled":
-        return <Badge variant="destructive">Cancelado</Badge>
-      default:
-        return <Badge variant="outline">{status}</Badge>
+    } catch (error) {
+      // Error handled by mutation hook
     }
   }
 
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString("en-US", {
-      weekday: "short",
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    })
+  const handleSubmitAppointment = async (data: CreateAppointmentDTO | UpdateAppointmentDTO) => {
+    try {
+      if (selectedAppointment) {
+        await updateAppointmentMutation.mutateAsync({
+          id: selectedAppointment.id.toString(),
+          ...(data as UpdateAppointmentDTO)
+        })
+      } else {
+        await createAppointmentMutation.mutateAsync(data as CreateAppointmentDTO)
+      }
+      setIsFormOpen(false)
+    } catch (error) {
+      // Error handled by mutation hook
+    }
   }
 
-  const formatTime = (timeStr: string) => {
-    return new Date(`2000-01-01T${timeStr}`).toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
-    })
-  }
-
-  const filteredAppointments = appointments.filter((appointment) => {
+  // Filter appointments
+  const filteredAppointments = appointments.filter((appointment: AppointmentDTO) => {
     if (statusFilter === "all") return true
     return appointment.status === statusFilter
   })
 
-  const columns = [
-    {
-      key: "appointment_date",
-      label: "Date",
-      render: (value: string) => (
-        <div className="flex items-center gap-2">
-          <Calendar className="h-4 w-4 text-muted-foreground" />
-          {formatDate(value)}
-        </div>
-      ),
-    },
-    {
-      key: "appointment_time",
-      label: "Time",
-      render: (value: string) => (
-        <div className="flex items-center gap-2">
-          <Clock className="h-4 w-4 text-muted-foreground" />
-          {formatTime(value)}
-        </div>
-      ),
-    },
-    {
-      key: "owner_name",
-      label: "Owner",
-      render: (value: string) => (
-        <div className="flex items-center gap-2">
-          <User className="h-4 w-4 text-muted-foreground" />
-          {value}
-        </div>
-      ),
-    },
-    {
-      key: "pet_name",
-      label: "Pet",
-      render: (value: string) => (
-        <div className="flex items-center gap-2">
-          <Heart className="h-4 w-4 text-muted-foreground" />
-          {value}
-        </div>
-      ),
-    },
-    { key: "assigned_vet", label: "Veterinarian" },
-    {
-      key: "status",
-      label: "Status",
-      render: (value: string) => getStatusBadge(value),
-    },
-  ]
-
   // Calculate stats
   const stats = {
     total: appointments.length,
-    pending: appointments.filter((a) => a.status === "pending").length,
-    completed: appointments.filter((a) => a.status === "completed").length,
-    canceled: appointments.filter((a) => a.status === "canceled").length,
-  }
-
-  if (isLoading) {
-    return (
-      <AuthWrapper>
-        <DashboardLayout>
-          <div className="flex items-center justify-center h-64">
-            <div className="text-lg">Cargando citas...</div>
-          </div>
-        </DashboardLayout>
-      </AuthWrapper>
-    )
+    pending: appointments.filter((a: AppointmentDTO) => a.status === "pending").length,
+    completed: appointments.filter((a: AppointmentDTO) => a.status === "completed").length,
+    canceled: appointments.filter((a: AppointmentDTO) => a.status === "canceled").length,
   }
 
   return (
@@ -364,82 +136,30 @@ export default function AppointmentsPage() {
               )}
             </div>
 
-            {/* Stats Cards */}
-            <div className="grid gap-4 md:grid-cols-4">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total</CardTitle>
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.total}</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Pendiente</CardTitle>
-                  <Clock className="h-4 w-4 text-blue-500" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-blue-600">{stats.pending}</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Terminado</CardTitle>
-                  <div className="h-4 w-4 rounded-full bg-green-500" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-green-600">{stats.completed}</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Cancelado</CardTitle>
-                  <div className="h-4 w-4 rounded-full bg-red-500" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-red-600">{stats.canceled}</div>
-                </CardContent>
-              </Card>
-            </div>
+            <AppointmentStats stats={stats} />
 
-            {/* Filter Controls */}
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <label htmlFor="status-filter" className="text-sm font-medium">
-                  Filtrar por estado:
-                </label>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-40">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todo el estado</SelectItem>
-                    <SelectItem value="pending">Pendiente</SelectItem>
-                    <SelectItem value="completed">Terminado</SelectItem>
-                    <SelectItem value="canceled">Cancelado</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+            <AppointmentFilters
+              statusFilter={statusFilter}
+              onStatusChange={setStatusFilter}
+            />
 
-            <DataTable
-              title="Scheduled Appointments"
-              description={`${filteredAppointments.length} appointment${filteredAppointments.length !== 1 ? "s" : ""} ${statusFilter !== "all" ? `with ${statusFilter} status` : ""}`}
-              data={filteredAppointments}
-              columns={columns}
+            <AppointmentsTable
+              appointments={filteredAppointments}
+              isLoading={isLoadingAppointments}
               onAdd={canAdd ? handleAddAppointment : undefined}
               onEdit={canEdit ? handleEditAppointment : undefined}
               onDelete={canDelete ? handleDeleteAppointment : undefined}
-              searchPlaceholder="Buscar citas..."
-              addButtonText="Programar cita"
+              statusFilter={statusFilter}
             />
 
             <AppointmentForm
               appointment={selectedAppointment}
               owners={owners}
               pets={pets}
+              veterinarians={[]} // TODO: Fetch veterinarians
+              statusOptions={[]} // TODO: Fetch status options
+              typeOptions={[]} // TODO: Fetch type options
+              priorityOptions={[]} // TODO: Fetch priority options
               open={isFormOpen}
               onOpenChange={setIsFormOpen}
               onSubmit={handleSubmitAppointment}
