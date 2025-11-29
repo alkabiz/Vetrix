@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { apiClient } from "@/lib/api/clients/api-clients/api-client"
 import { toast } from "@/hooks/use-toast"
-import type { Owner } from "@/lib/database/database"
+import type { OwnerDTO } from "@/lib/api/types/owner.types"
 
 // Query keys for better cache management
 export const ownerKeys = {
@@ -43,7 +43,7 @@ export function useCreateOwner() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (owner: Omit<Owner, "id">) => {
+    mutationFn: async (owner: Omit<OwnerDTO, "id">) => {
       const { data } = await apiClient.post("/owners", owner)
       return data
     },
@@ -70,7 +70,7 @@ export function useUpdateOwner() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ id, ...owner }: Partial<Owner> & { id: string }) => {
+    mutationFn: async ({ id, ...owner }: Omit<Partial<OwnerDTO>, "id"> & { id: string }) => {
       const { data } = await apiClient.put(`/owners/${id}`, owner)
       return data
     },
