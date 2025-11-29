@@ -1,11 +1,19 @@
-import type { 
-  Appointment, 
-  Owner, 
-  Pet, 
-  Veterinarian, 
-  AppointmentStatus, 
-  AppointmentType, 
-  AppointmentPriority 
+import type {
+  AppointmentDTO,
+  CreateAppointmentDTO,
+  UpdateAppointmentDTO
+} from "@/lib/api/types/appointment.types"
+import type {
+  OwnerDTO
+} from "@/lib/api/types/owner.types"
+import type {
+  PetDTO
+} from "@/lib/api/types/pet.types"
+import type {
+  Veterinarian,
+  AppointmentStatus,
+  AppointmentType,
+  AppointmentPriority
 } from "@/lib/database/database"
 
 // Base form data interface with proper typing
@@ -51,28 +59,28 @@ export interface AppointmentFormErrors {
 
 // Props for the main component
 export interface AppointmentFormProps {
-  appointment?: Appointment | null
-  owners: Owner[]
-  pets: Pet[]
+  appointment?: AppointmentDTO | null
+  owners: OwnerDTO[]
+  pets: PetDTO[]
   veterinarians: Veterinarian[]
   statusOptions: AppointmentStatus[]
   typeOptions: AppointmentType[]
   priorityOptions: AppointmentPriority[]
   open: boolean
   onOpenChange: (open: boolean) => void
-  onSubmit: (appointment: Omit<Appointment, "id" | "createdAt" | "updatedAt">) => Promise<void>
+  onSubmit: (data: CreateAppointmentDTO | UpdateAppointmentDTO) => Promise<void>
 }
 
 // Props for sub-components
 export interface BasicInformationSectionProps {
   formData: AppointmentFormData
   errors: AppointmentFormErrors
-  owners: Owner[]
-  pets: Pet[]
+  owners: OwnerDTO[]
+  pets: PetDTO[]
   veterinarians: Veterinarian[]
-  filteredPets: Pet[]
+  filteredPets: PetDTO[]
   onFieldChange: <K extends keyof AppointmentFormData>(
-    field: K, 
+    field: K,
     value: AppointmentFormData[K]
   ) => void
   disabled?: boolean
@@ -85,7 +93,7 @@ export interface SchedulingSectionProps {
   typeOptions: AppointmentType[]
   priorityOptions: AppointmentPriority[]
   onFieldChange: <K extends keyof AppointmentFormData>(
-    field: K, 
+    field: K,
     value: AppointmentFormData[K]
   ) => void
 }
@@ -94,7 +102,7 @@ export interface AppointmentDetailsSectionProps {
   formData: AppointmentFormData
   errors: AppointmentFormErrors
   onFieldChange: <K extends keyof AppointmentFormData>(
-    field: K, 
+    field: K,
     value: AppointmentFormData[K]
   ) => void
 }
@@ -102,7 +110,7 @@ export interface AppointmentDetailsSectionProps {
 export interface FollowUpSectionProps {
   formData: AppointmentFormData
   onFieldChange: <K extends keyof AppointmentFormData>(
-    field: K, 
+    field: K,
     value: AppointmentFormData[K]
   ) => void
 }
@@ -110,16 +118,13 @@ export interface FollowUpSectionProps {
 export interface NotesSectionProps {
   formData: AppointmentFormData
   onFieldChange: <K extends keyof AppointmentFormData>(
-    field: K, 
+    field: K,
     value: AppointmentFormData[K]
   ) => void
 }
 
 // Form submission types
-export interface AppointmentSubmitData 
-  extends Omit<Appointment, "id" | "createdAt" | "updatedAt" | "appointmentDate"> {
-  appointmentDate: string
-}
+export type AppointmentSubmitData = CreateAppointmentDTO | UpdateAppointmentDTO
 
 // Validation schema type (for Zod or Yup)
 export interface AppointmentFormValidationSchema {
@@ -141,7 +146,7 @@ export interface AppointmentFormValidationSchema {
 // API response types
 export interface AppointmentFormApiResponse {
   success: boolean
-  data?: Appointment
+  data?: AppointmentDTO
   error?: string
   validationErrors?: Record<string, string>
 }
@@ -151,9 +156,9 @@ export interface UseAppointmentFormReturn {
   formData: AppointmentFormData
   errors: AppointmentFormErrors
   isSubmitting: boolean
-  filteredPets: Pet[]
+  filteredPets: PetDTO[]
   handleFieldChange: <K extends keyof AppointmentFormData>(
-    field: K, 
+    field: K,
     value: AppointmentFormData[K]
   ) => void
   handleNumberFieldChange: (field: keyof AppointmentFormData, value: string) => void
@@ -163,7 +168,7 @@ export interface UseAppointmentFormReturn {
 
 // Default values constant type
 export type AppointmentFormDefaultValues = Omit<
-  AppointmentFormData, 
+  AppointmentFormData,
   'appointmentNumber' | 'appointmentDatetime'
 > & {
   appointmentNumber?: string
@@ -189,7 +194,7 @@ export interface AppointmentFormEventHandlers {
   onSubmit: (data: AppointmentSubmitData) => Promise<void>
   onCancel: () => void
   onFieldChange: <K extends keyof AppointmentFormData>(
-    field: K, 
+    field: K,
     value: AppointmentFormData[K]
   ) => void
   onValidate: (field: keyof AppointmentFormData) => string | undefined
@@ -208,7 +213,7 @@ export interface AppointmentFormConfig {
 }
 
 // Export a union type for all form-related types
-export type AppointmentFormTypes = 
+export type AppointmentFormTypes =
   | AppointmentFormData
   | AppointmentFormErrors
   | AppointmentFormProps
