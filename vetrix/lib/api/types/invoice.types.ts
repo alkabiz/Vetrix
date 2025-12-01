@@ -7,5 +7,6 @@ export interface InvoiceEntity extends Omit<Invoice, 'status'> {
 export interface InvoiceDTO extends InvoiceEntity {
     owner_name?: string
     pet_name?: string
+    services?: string
 }
 
