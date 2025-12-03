@@ -1,7 +1,7 @@
 "use client"
 
 import { useReducer, useCallback, useEffect, useRef } from "react"
-import type { Pet } from "@/lib/database/database"
+import { PetDTO } from "@/lib/api/types/pet.types"
 import type { UsePetFormProps, UsePetFormReturn, PetFormData, PetFormErrors } from "../types/PetForm.types"
 import { DEFAULT_PET_FORM_VALUES } from "../types/form-data.types"
 import { usePetFormValidation } from "./usePetFormValidation"
@@ -70,7 +70,7 @@ function petFormReducer(state: PetFormState, action: PetFormAction): PetFormStat
   }
 }
 
-function getInitialState(pet?: Pet | null): PetFormState {
+function getInitialState(pet?: PetDTO | null): PetFormState {
   const initialFormData = pet
     ? transformPetToFormData(pet)
     : DEFAULT_PET_FORM_VALUES
