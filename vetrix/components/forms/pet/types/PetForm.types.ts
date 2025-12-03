@@ -1,10 +1,11 @@
-import type { Pet, Owner, Species, Breed, Color, Sex, SterilizationType } from "@/lib/database/database"
+import type { Owner, Species, Breed, Color, Sex, SterilizationType } from "@/lib/database/database"
+import { PetDTO, PetInput } from "@/lib/api/types/pet.types"
 import type { z } from "zod"
 import { petBasicInfoSchema, petBehaviorSchema, petFormSchema, petIdentificationSchema, petMedicalInfoSchema } from "./validation.schemas"
 
 // Main component props
 export interface PetFormProps {
-  pet?: Pet | null
+  pet?: PetDTO | null
   owners: Owner[]
   species: Species[]
   breeds: Breed[]
@@ -13,7 +14,7 @@ export interface PetFormProps {
   sterilizationTypes: SterilizationType[]
   open: boolean
   onOpenChange: (open: boolean) => void
-  onSubmit: (pet: Omit<Pet, "id" | "createdAt" | "updatedAt">) => Promise<void>
+  onSubmit: (pet: PetInput) => Promise<void>
 }
 
 // Form data type matching database schema
@@ -216,8 +217,8 @@ export interface PetFormConfig {
 
 // Hook props
 export interface UsePetFormProps {
-  pet?: Pet | null
-  onSubmit: (pet: Omit<Pet, "id" | "createdAt" | "updatedAt">) => Promise<void>
+  pet?: PetDTO | null
+  onSubmit: (pet: PetInput) => Promise<void>
 }
 
 // Hook return types
@@ -246,7 +247,7 @@ export type PetFormInput = z.infer<typeof petFormSchema>
 // View component props
 export interface PetFormViewProps {
   // Data
-  pet?: Pet | null
+  pet?: PetDTO | null
   formData: PetFormData
   errors: PetFormErrors
   isSubmitting: boolean
