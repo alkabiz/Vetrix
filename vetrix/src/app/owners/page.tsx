@@ -2,49 +2,24 @@
 
 import { useState } from "react"
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
-import { DataTable } from "@/components/ui/data-table"
-import { OwnerForm } from "@/components/forms/owner/OwnerForm"
+import { OwnerForm } from "@/components/forms/owner"
 import { useToast } from "@/hooks/use-toast"
-import type { Owner } from "@/lib/database/database"
 import { AuthWrapper } from "@/components/auth/auth-wrapper"
 import { ProtectedRoute } from "@/components/auth/protected-route"
 import { useAuth } from "@/contexts/auth-context"
-
-const mockOwners: Owner[] = [
-  {
-    id: 1,
-    name: "John Smith",
-    phone: "(555) 123-4567",
-    email: "john.smith@email.com",
-    address: "123 Main St, Anytown, ST 12345",
-    created_at: "2024-01-15T10:30:00Z",
-    updated_at: "2024-01-15T10:30:00Z",
-  },
-  {
-    id: 2,
-    name: "Sarah Johnson",
-    phone: "(555) 987-6543",
-    email: "sarah.j@email.com",
-    address: "456 Oak Ave, Somewhere, ST 67890",
-    created_at: "2024-01-20T14:15:00Z",
-    updated_at: "2024-01-20T14:15:00Z",
-  },
-  {
-    id: 3,
-    name: "Mike Wilson",
-    phone: "(555) 456-7890",
-    email: "mike.wilson@email.com",
-    address: "789 Pine Rd, Elsewhere, ST 54321",
-    created_at: "2024-02-01T09:45:00Z",
-    updated_at: "2024-02-01T09:45:00Z",
-  },
-]
+import { useOwners } from "@/src/hooks/useOwners"
+import { OwnersTable } from "@/components/owners/OwnersTable"
+import { OwnerStats } from "@/components/owners/OwnerStats"
+import { OwnerFilters } from "@/components/owners/OwnerFilters"
+import { OwnerDTO, OwnerInput } from "@/lib/api/types/owner.types"
+import { Button } from "@/components/ui/button"
+import { Plus } from "lucide-react"
 
 export default function OwnersPage() {
-  const [owners, setOwners] = useState<Owner[]>(mockOwners)
-  const [selectedOwner, setSelectedOwner] = useState<Owner | null>(null)
+  const { owners = [], isLoading, createOwner, updateOwner, deleteOwner } = useOwners()
+  const [selectedOwner, setSelectedOwner] = useState<OwnerDTO | null>(null)
   const [isFormOpen, setIsFormOpen] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
+  const [searchTerm, setSearchTerm] = useState("")
   const { toast } = useToast()
   const { user } = useAuth()
 
@@ -55,8 +30,8 @@ export default function OwnersPage() {
   const handleAddOwner = () => {
     if (!canAdd) {
       toast({
-        title: "Acceso denegado",
-        description: "No tienes permiso para agregar propietarios.",
+        title: "Access Denied",
+        description: "You do not have permission to add owners.",
         variant: "destructive",
       })
       return
@@ -65,11 +40,11 @@ export default function OwnersPage() {
     setIsFormOpen(true)
   }
 
-  const handleEditOwner = (owner: Owner) => {
+  const handleEditOwner = (owner: OwnerDTO) => {
     if (!canEdit) {
       toast({
-        title: "Acceso denegado",
-        description: "No tienes permiso para editar propietarios.",
+        title: "Access Denied",
+        description: "You do not have permission to edit owners.",
         variant: "destructive",
       })
       return
@@ -78,73 +53,53 @@ export default function OwnersPage() {
     setIsFormOpen(true)
   }
 
-  const handleDeleteOwner = async (owner: Owner) => {
+  const handleDeleteOwner = async (owner: OwnerDTO) => {
     if (!canDelete) {
       toast({
-        title: "Acceso denegado",
-        description: "No tienes permiso para eliminar propietarios.",
+        title: "Access Denied",
+        description: "You do not have permission to delete owners.",
         variant: "destructive",
       })
       return
     }
 
-    if (!confirm(`¿Estás seguro de que quieres eliminar? ${owner.name}? Esto también eliminará todas las mascotas asociadas.`)) {
+    if (!confirm(`Are you sure you want to delete ${owner.name || owner.firstName}? This will also delete all associated pets.`)) {
       return
     }
 
-    setOwners(owners.filter((o) => o.id !== owner.id))
-    toast({
-      title: "Éxito",
-      description: "El propietario eliminó Éxitofully.",
-    })
+    deleteOwner.mutate(owner.id)
   }
 
-  const handleSubmitOwner = async (ownerData: Omit<Owner, "id" | "created_at" | "updated_at">) => {
-    if (selectedOwner) {
-      const updatedOwner = {
-        ...selectedOwner,
-        ...ownerData,
-        updated_at: new Date().toISOString(),
+  const handleSubmitOwner = async (ownerData: OwnerInput) => {
+    try {
+      if (selectedOwner) {
+        await updateOwner.mutateAsync({ id: selectedOwner.id, data: ownerData })
+      } else {
+        await createOwner.mutateAsync(ownerData)
       }
-      setOwners(owners.map((o) => (o.id === selectedOwner.id ? updatedOwner : o)))
-      toast({
-        title: "Éxito",
-        description: "Propietario actualizado Éxitofully",
-      })
-    } else {
-      const newOwner: Owner = {
-        id: Math.max(...owners.map((o) => o.id)) + 1,
-        ...ownerData,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      }
-      setOwners([...owners, newOwner])
-      toast({
-        title: "Éxito",
-        description: "Propietario creado correctamente",
-      })
+      setIsFormOpen(false)
+    } catch (error) {
+      // Error handling is done in the mutation callbacks
+      console.error(error)
     }
-    setIsFormOpen(false)
   }
 
-  const columns = [
-    { key: "name", label: "Name" },
-    { key: "phone", label: "Phone" },
-    { key: "email", label: "Email" },
-    { key: "address", label: "Address" },
-    {
-      key: "created_at",
-      label: "Created",
-      render: (value: string) => new Date(value).toLocaleDateString(),
-    },
-  ]
+  // Client-side filtering
+  const filteredOwners = owners.filter((owner) => {
+    const searchLower = searchTerm.toLowerCase()
+    const name = `${owner.firstName} ${owner.lastName}`.toLowerCase()
+    const email = (owner.email || "").toLowerCase()
+    const phone = (owner.phonePrimary || "").toLowerCase()
+
+    return name.includes(searchLower) || email.includes(searchLower) || phone.includes(searchLower)
+  })
 
   if (isLoading) {
     return (
       <AuthWrapper>
         <DashboardLayout>
           <div className="flex items-center justify-center h-64">
-            <div className="text-lg">Cargando propietarios...</div>
+            <div className="text-lg">Loading owners...</div>
           </div>
         </DashboardLayout>
       </AuthWrapper>
@@ -157,25 +112,31 @@ export default function OwnersPage() {
         <DashboardLayout>
           <div className="space-y-6">
             <div>
-              <h1 className="text-3xl font-bold">Propietarios</h1>
-              <p className="text-muted-foreground">Administra a los dueños de mascotas y su información de contacto.</p>
+              <h1 className="text-3xl font-bold">Owners</h1>
+              <p className="text-muted-foreground">Manage pet owners and their contact information.</p>
               {user?.role === "assistant" && (
                 <p className="text-sm text-orange-600 mt-1">
-                  Acceso de asistente: puede crear y editar propietarios, pero no eliminarlos.
+                  Assistant Access: Can create and edit owners, but cannot delete them.
                 </p>
               )}
             </div>
 
-            <DataTable
-              title="Propietarios de mascotas"
-              description="Todos los propietarios de mascotas registrados en el sistema"
-              data={owners}
-              columns={columns}
-              onAdd={canAdd ? handleAddOwner : undefined}
+            <OwnerStats owners={owners} />
+
+            <div className="flex items-center justify-between">
+              <OwnerFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} />
+              {canAdd && (
+                <Button onClick={handleAddOwner}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Owner
+                </Button>
+              )}
+            </div>
+
+            <OwnersTable
+              owners={filteredOwners}
               onEdit={canEdit ? handleEditOwner : undefined}
               onDelete={canDelete ? handleDeleteOwner : undefined}
-              searchPlaceholder="Buscar propietarios..."
-              addButtonText="Añadir propietario"
             />
 
             <OwnerForm
