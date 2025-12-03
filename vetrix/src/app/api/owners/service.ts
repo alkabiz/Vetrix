@@ -29,11 +29,24 @@ export class OwnerService {
         const db = getDatabase()
 
         const stmt = db.prepare(`
-      INSERT INTO owners (name, phone, email, address)
-      VALUES (?, ?, ?, ?)
-    `)
+            INSERT INTO owners (
+                firstName, lastName, phonePrimary, phoneSecondary, email, 
+                addressStreet, cityId, addressPostalCode, 
+                identificationTypeId, identificationNumber,
+                emergencyContactName, emergencyContactPhone, emergencyContactRelationship,
+                marketingConsent, dataProcessingConsent, creditLimit, notes,
+                createdAt, updatedAt
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        `)
 
-        const result = stmt.run(data.name, data.phone, data.email, data.address)
+        const result = stmt.run(
+            data.firstName, data.lastName, data.phonePrimary, data.phoneSecondary, data.email,
+            data.addressStreet, data.cityId, data.addressPostalCode,
+            data.identificationTypeId, data.identificationNumber,
+            data.emergencyContactName, data.emergencyContactPhone, data.emergencyContactRelationship,
+            data.marketingConsent ? 1 : 0, data.dataProcessingConsent ? 1 : 0, data.creditLimit, data.notes
+        )
 
         return this.getById(result.lastInsertRowid.toString())
     }
