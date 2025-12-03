@@ -1,11 +1,11 @@
 import type { PetFormData } from "../types/PetForm.types"
-import type { Pet } from "@/lib/database/database"
+import { PetDTO, PetInput } from "@/lib/api/types/pet.types"
 import { deepEqual } from "./performance-utils"
 
 /**
- * Transform form data to database format
+ * Transform form data to API input format (PetInput)
  */
-export function transformFormDataToPet(formData: PetFormData): Omit<Pet, "id" | "createdAt" | "updatedAt"> {
+export function transformFormDataToPet(formData: PetFormData): PetInput {
   // Convert empty strings to undefined for database
   const sanitizedData = sanitizeFormData(formData)
 
@@ -18,33 +18,31 @@ export function transformFormDataToPet(formData: PetFormData): Omit<Pet, "id" | 
     sexId: Number(sanitizedData.sexId),
     primaryColorId: sanitizedData.primaryColorId ? Number(sanitizedData.primaryColorId) : undefined,
     secondaryColorId: sanitizedData.secondaryColorId ? Number(sanitizedData.secondaryColorId) : undefined,
-    dateOfBirth: sanitizedData.dateOfBirth ? new Date(sanitizedData.dateOfBirth) : undefined,
+    dateOfBirth: sanitizedData.dateOfBirth || undefined,  // Keep as ISO string
     isBirthEstimated: Boolean(sanitizedData.isBirthEstimated),
     microchipNumber: sanitizedData.microchipNumber || undefined,
-    microchipDate: sanitizedData.microchipDate ? new Date(sanitizedData.microchipDate) : undefined,
+    microchipDate: sanitizedData.microchipDate || undefined,  // Keep as ISO string
     microchipLocation: sanitizedData.microchipLocation || undefined,
     tattooNumber: sanitizedData.tattooNumber || undefined,
     isSterilized: Boolean(sanitizedData.isSterilized),
-    sterilizationDate: sanitizedData.sterilizationDate ? new Date(sanitizedData.sterilizationDate) : undefined,
+    sterilizationDate: sanitizedData.sterilizationDate || undefined,  // Keep as ISO string
     sterilizationTypeId: sanitizedData.sterilizationTypeId ? Number(sanitizedData.sterilizationTypeId) : undefined,
     registrationNumber: sanitizedData.registrationNumber || undefined,
     isActive: Boolean(sanitizedData.isActive),
-    dateOfDeath: sanitizedData.dateOfDeath ? new Date(sanitizedData.dateOfDeath) : undefined,
-    causeOfDeath: sanitizedData.causeOfDeath || undefined,
     specialNeeds: sanitizedData.specialNeeds || undefined,
     behavioralNotes: sanitizedData.behavioralNotes || undefined,
     dietaryRestrictions: sanitizedData.dietaryRestrictions || undefined,
     exerciseRequirements: sanitizedData.exerciseRequirements || undefined,
-    acquisitionDate: sanitizedData.acquisitionDate ? new Date(sanitizedData.acquisitionDate) : undefined,
+    acquisitionDate: sanitizedData.acquisitionDate || undefined,  // Keep as ISO string
     acquisitionSource: sanitizedData.acquisitionSource || undefined,
     previousOwnerInfo: sanitizedData.previousOwnerInfo || undefined,
   }
 }
 
 /**
- * Transform database Pet object to form data format
+ * Transform PetDTO to form data format
  */
-export function transformPetToFormData(pet: Pet): PetFormData {
+export function transformPetToFormData(pet: PetDTO): PetFormData {
   return {
     petNumber: pet.petNumber,
     ownerId: pet.ownerId,
@@ -128,7 +126,7 @@ export function sanitizeFormData(formData: PetFormData): PetFormData {
 /**
  * Prepare form data for API submission
  */
-export function prepareFormDataForSubmission(formData: PetFormData): Partial<Pet> {
+export function prepareFormDataForSubmission(formData: PetFormData): PetInput {
   const sanitized = sanitizeFormData(formData)
   return transformFormDataToPet(sanitized)
 }
