@@ -18,21 +18,23 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { UserDTO } from "@/lib/api/types/user.types"
+import { UserDTO, UserUpdateInput } from "@/lib/api/types/user.types"
 import { useUsers } from "@/src/hooks/useUsers"
 import { UserStats } from "@/src/components/users/UserStats"
 import { UserFilters } from "@/src/components/users/UserFilters"
 import { UsersTable } from "@/src/components/users/UsersTable"
+import { EditUserForm } from "@/src/components/users/EditUserForm"
 
 export default function UsersPage() {
   const [isRegisterOpen, setIsRegisterOpen] = useState(false)
   const [deleteUser, setDeleteUser] = useState<UserDTO | null>(null)
+  const [editUser, setEditUser] = useState<UserDTO | null>(null)
   const [roleFilter, setRoleFilter] = useState("all")
   const [searchTerm, setSearchTerm] = useState("")
   const { toast } = useToast()
 
   // Fetch users from API
-  const { users = [], isLoading, deleteUser: deleteUserMutation } = useUsers()
+  const { users = [], isLoading, deleteUser: deleteUserMutation, updateUser: updateUserMutation } = useUsers()
 
   const handleDeleteUser = async (user: UserDTO) => {
     // Prevent deleting the last admin
@@ -48,6 +50,24 @@ export default function UsersPage() {
 
     deleteUserMutation.mutate(user.id)
     setDeleteUser(null)
+  }
+
+  const handleEditUser = async (userId: number, data: UserUpdateInput) => {
+    // Check if trying to remove last admin
+    const userToEdit = users.find(u => u.id === userId)
+    if (userToEdit && userToEdit.roleId === 1 && data.roleId !== 1) {
+      const adminCount = users.filter((u) => u.roleId === 1).length
+      if (adminCount <= 1) {
+        toast({
+          title: "No se puede cambiar el rol",
+          description: "No se puede cambiar el rol de la última cuenta de administrador.",
+          variant: "destructive",
+        })
+        throw new Error("Cannot change role of last admin")
+      }
+    }
+
+    await updateUserMutation.mutateAsync({ id: userId, data })
   }
 
   // Client-side filtering
@@ -106,11 +126,21 @@ export default function UsersPage() {
             {/* Users List */}
             <UsersTable
               users={filteredUsers}
+              onEdit={(user) => setEditUser(user)}
               onDelete={(user) => setDeleteUser(user)}
             />
 
             {/* Register Form Dialog */}
             <RegisterForm open={isRegisterOpen} onOpenChange={setIsRegisterOpen} />
+
+            {/* Edit User Form Dialog */}
+            <EditUserForm
+              open={!!editUser}
+              onOpenChange={(open) => !open && setEditUser(null)}
+              user={editUser}
+              onSubmit={handleEditUser}
+              isSubmitting={updateUserMutation.isPending}
+            />
 
             {/* Delete Confirmation Dialog */}
             <AlertDialog open={!!deleteUser} onOpenChange={() => setDeleteUser(null)}>
