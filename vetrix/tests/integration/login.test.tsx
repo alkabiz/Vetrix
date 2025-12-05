@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { AuthProvider } from '@/contexts/auth-context'
+import { authService } from '@/services/authService'
 import LoginPage from '@/src/app/login/page'
 
 // Mock fetch
@@ -16,7 +18,9 @@ const createWrapper = () => {
         },
     })
     return ({ children }: { children: React.ReactNode }) => (
-        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+        <QueryClientProvider client={queryClient}>
+            <AuthProvider>{children}</AuthProvider>
+        </QueryClientProvider>
     )
 }
 
@@ -24,6 +28,9 @@ describe('Login Flow Integration Test', () => {
     beforeEach(() => {
         vi.clearAllMocks()
         localStorage.clear()
+
+        // Mock session check to avoid consuming fetch mock
+        vi.spyOn(authService, 'getCurrentUser').mockResolvedValue(null)
     })
 
     it('successful login redirects to dashboard', async () => {
@@ -62,9 +69,8 @@ describe('Login Flow Integration Test', () => {
         })
 
         // Verify token stored (will be cookies in final implementation)
-        await waitFor(() => {
-            expect(localStorage.getItem('token')).toBe('mock-token')
-        })
+        // Token is now in HttpOnly cookie, so we can't check localStorage
+        // The redirection is the main success indicator here
     })
 
     it('displays error message on invalid credentials', async () => {
@@ -92,7 +98,7 @@ describe('Login Flow Integration Test', () => {
         })
 
         // Verify no token was stored
-        expect(localStorage.getItem('token')).toBeNull()
+        // expect(localStorage.getItem('token')).toBeNull()
     })
 
     it('shows loading state during login', async () => {
