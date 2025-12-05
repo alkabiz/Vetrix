@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge"
 import { Users, Heart, Calendar, FileText, UserCog, Plus, ArrowUpRight } from "lucide-react"
 import Link from "next/link"
 import { useDashboardData } from "@/src/hooks/useDashboardData"
-import type { User } from "@/lib/database/database"
+import type { UserDTO } from "@/lib/api/types/dto"
 
 interface QuickAction {
     href: string
@@ -14,7 +14,7 @@ interface QuickAction {
 }
 
 interface DashboardQuickActionsProps {
-    user: User | null
+    user: UserDTO | null
 }
 
 /**
@@ -23,7 +23,7 @@ interface DashboardQuickActionsProps {
 export function DashboardQuickActions({ user }: DashboardQuickActionsProps) {
     // Fetch dashboard data
     const { stats } = useDashboardData()
-    const appointmentsData = stats.todayAppointments
+    const appointmentsData = stats.todaysAppointments
 
     if (!user) return null
 
