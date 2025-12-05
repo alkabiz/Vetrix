@@ -1,6 +1,9 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { Users, Heart, Calendar, FileText, UserCog, Plus, ArrowUpRight } from "lucide-react"
 import Link from "next/link"
+import { useQuery } from "@tanstack/react-query"
+import axios from "axios"
 import type { User } from "@/lib/database/database"
 
 interface QuickAction {
@@ -8,6 +11,7 @@ interface QuickAction {
     icon: any
     title: string
     color: string
+    count?: number
 }
 
 interface DashboardQuickActionsProps {
@@ -15,9 +19,20 @@ interface DashboardQuickActionsProps {
 }
 
 /**
- * DashboardQuickActions - Role-based quick action links
+ * DashboardQuickActions - Role-based quick action links with dynamic counts
  */
 export function DashboardQuickActions({ user }: DashboardQuickActionsProps) {
+    // Fetch today's appointments count
+    const { data: appointmentsData } = useQuery({
+        queryKey: ["appointments", "today"],
+        queryFn: async () => {
+            const today = new Date().toISOString().split("T")[0]
+            const response = await axios.get<{ appointments: any[] }>(`/api/appointments?date=${today}`)
+            return response.data.appointments.length
+        },
+        enabled: !!user,
+    })
+
     if (!user) return null
 
     const getRoleSpecificActions = (): QuickAction[] => {
@@ -39,6 +54,7 @@ export function DashboardQuickActions({ user }: DashboardQuickActionsProps) {
                 icon: Calendar,
                 title: "Programar una cita",
                 color: "orange",
+                count: appointmentsData,
             },
         ]
 
@@ -92,7 +108,14 @@ export function DashboardQuickActions({ user }: DashboardQuickActionsProps) {
                             </div>
                             <span className="font-medium">{action.title}</span>
                         </div>
-                        <ArrowUpRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground" />
+                        <div className="flex items-center gap-2">
+                            {action.count && action.count > 0 && (
+                                <Badge variant="secondary" className="text-xs">
+                                    {action.count} hoy
+                                </Badge>
+                            )}
+                            <ArrowUpRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground" />
+                        </div>
                     </Link>
                 ))}
             </CardContent>
