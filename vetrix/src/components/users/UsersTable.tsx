@@ -5,12 +5,14 @@ interface UsersTableProps {
     users: UserDTO[]
     onEdit?: (user: UserDTO) => void
     onDelete?: (user: UserDTO) => void
+    selectedUsers?: number[]
+    onSelectUser?: (userId: number, selected: boolean) => void
 }
 
 /**
  * UsersTable - Container for rendering a list of user cards
  */
-export function UsersTable({ users, onEdit, onDelete }: UsersTableProps) {
+export function UsersTable({ users, onEdit, onDelete, selectedUsers = [], onSelectUser }: UsersTableProps) {
     if (users.length === 0) {
         return (
             <div className="text-center py-12">
@@ -27,6 +29,8 @@ export function UsersTable({ users, onEdit, onDelete }: UsersTableProps) {
                     user={user}
                     onEdit={onEdit}
                     onDelete={onDelete}
+                    selected={selectedUsers.includes(user.id)}
+                    onSelect={onSelectUser}
                 />
             ))}
         </div>
