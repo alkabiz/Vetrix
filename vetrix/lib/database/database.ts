@@ -902,6 +902,23 @@ export interface UserActivityLog {
   createdAt: string // ISO datetime
 }
 
+// usr_refresh_tokens.interface.ts
+/**
+ * RefreshToken - Secure refresh tokens for session management
+ * Implements token rotation and revocation tracking
+ */
+export interface RefreshToken {
+  id: string // UUID
+  userId: number // FK → usr_users.id
+  token: string // Hashed refresh token
+  expiresAt: string // ISO datetime
+  createdAt: string // ISO datetime
+  revokedAt?: string | null // ISO datetime (if revoked)
+  replacedByToken?: string | null // UUID of replacement token
+  deviceInfo?: string | null // User agent info
+  ipAddress?: string | null // Client IP address
+}
+
 // usr_audit_logs.interface.ts
 /**
  * AuditLog - Audit log for user management actions
