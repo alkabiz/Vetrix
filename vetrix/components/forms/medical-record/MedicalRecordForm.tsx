@@ -8,11 +8,12 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import type { MedicalRecord, Pet, Appointment } from "@/lib/database/database"
+import type { MedicalRecord, Appointment } from "@/lib/database/database"
+import type { PetDTO } from "@/lib/api/types/pet.types"
 
 interface MedicalRecordFormProps {
   record?: MedicalRecord | null
-  pets: Pet[]
+  pets: PetDTO[]
   appointments: Appointment[]
   open: boolean
   onOpenChange: (open: boolean) => void

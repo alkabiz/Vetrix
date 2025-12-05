@@ -1,10 +1,10 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Pet } from "@/lib/database/database"
+import { PetDTO } from "@/lib/api/types/pet.types"
 
 interface MedicalRecordsFiltersProps {
     currentFilter: string
     onFilterChange: (value: string) => void
-    pets: Pet[]
+    pets: PetDTO[]
 }
 
 export function MedicalRecordsFilters({ currentFilter, onFilterChange, pets }: MedicalRecordsFiltersProps) {
