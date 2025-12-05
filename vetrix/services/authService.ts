@@ -4,8 +4,8 @@
  * @module services/authService
  */
 
-import type { User } from '@/lib/database/database'
-import type { LoginCredentials, AuthResponse, RefreshTokenResponse } from '@/lib/api/types/auth.types'
+import type { LoginInput, AuthResponse, UserDTO } from '@/lib/api/types/dto'
+import type { RefreshTokenResponse } from '@/lib/api/types/auth.types' // Keep specifics if needed, or move them
 
 /**
  * Client-side authentication service
@@ -18,7 +18,7 @@ class AuthenticationService {
      * Login with credentials
      * Tokens are automatically set as HttpOnly cookies by the server
      */
-    async login(credentials: LoginCredentials): Promise<AuthResponse> {
+    async login(credentials: LoginInput): Promise<AuthResponse> {
         const response = await fetch(`${this.baseUrl}/login`, {
             method: 'POST',
             headers: {
@@ -35,7 +35,6 @@ class AuthenticationService {
 
         const data = await response.json()
         return {
-            token: '', // Token is in HTTPOnly cookie, not returned
             user: data.user,
             expiresAt: data.expiresAt,
         }
@@ -83,7 +82,7 @@ class AuthenticationService {
      * Get current user session
      * Note: This requires the server to implement /api/auth/session endpoint
      */
-    async getCurrentUser(): Promise<User | null> {
+    async getCurrentUser(): Promise<UserDTO | null> {
         try {
             const response = await fetch(`${this.baseUrl}/session`, {
                 credentials: 'include',
