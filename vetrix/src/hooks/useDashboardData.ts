@@ -1,14 +1,10 @@
 import { useQuery } from "@tanstack/react-query"
 import axios from "axios"
 import type { AuditLog } from "@/lib/api/types/user.types"
+import type { DashboardMetricsDTO } from "@/lib/api/types/dto"
 
 export interface DashboardData {
-    stats: {
-        totalOwners: number
-        totalPets: number
-        todayAppointments: number
-        monthlyRevenue: number
-    }
+    stats: DashboardMetricsDTO
     recentActivity: AuditLog[]
     isLoading: boolean
     error: Error | null
@@ -19,32 +15,12 @@ export interface DashboardData {
  * Consolidates multiple requests to optimize performance
  */
 export function useDashboardData(): DashboardData {
-    // Fetch stats
+    // Fetch stats from unified endpoint
     const { data: statsData, isLoading: statsLoading, error: statsError } = useQuery({
-        queryKey: ["dashboard", "stats"],
+        queryKey: ["dashboard", "metrics"],
         queryFn: async () => {
-            const today = new Date().toISOString().split("T")[0]
-            const currentMonth = today.slice(0, 7) // YYYY-MM format
-
-            // Run requests in parallel
-            const [ownersRes, petsRes, appointmentsRes, invoicesRes] = await Promise.all([
-                axios.get<{ owners: any[] }>("/api/owners"),
-                axios.get<{ pets: any[] }>("/api/pets"),
-                axios.get<{ appointments: any[] }>(`/api/appointments?date=${today}`),
-                axios.get<{ invoices: any[] }>(`/api/invoices?month=${currentMonth}`)
-            ])
-
-            // Calculate revenue
-            const monthlyRevenue = invoicesRes.data.invoices
-                .filter((inv: any) => inv.status === "paid" || inv.status === "Paid")
-                .reduce((sum: number, inv: any) => sum + (inv.totalAmount || 0), 0)
-
-            return {
-                totalOwners: ownersRes.data.owners.length,
-                totalPets: petsRes.data.pets.length,
-                todayAppointments: appointmentsRes.data.appointments.length,
-                monthlyRevenue
-            }
+            const response = await axios.get<DashboardMetricsDTO>("/api/dashboard/metrics")
+            return response.data
         }
     })
 
@@ -60,9 +36,9 @@ export function useDashboardData(): DashboardData {
 
     return {
         stats: statsData || {
-            totalOwners: 0,
-            totalPets: 0,
-            todayAppointments: 0,
+            owners: 0,
+            pets: 0,
+            todaysAppointments: 0,
             monthlyRevenue: 0
         },
         recentActivity: activityData || [],
