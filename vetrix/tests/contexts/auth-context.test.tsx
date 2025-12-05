@@ -4,6 +4,7 @@ import { render, screen, waitFor, act } from '@testing-library/react'
 import { AuthProvider, useAuth } from '@/contexts/auth-context'
 import { authService } from '@/services/authService'
 import { useRouter } from 'next/navigation'
+import type { UserDTO } from '@/lib/api/types/dto'
 
 // Mock dependencies
 vi.mock('next/navigation', () => ({
@@ -28,7 +29,7 @@ const TestComponent = () => {
     return (
         <div>
             <div data-testid="user-name">{user?.username || 'Guest'}</div>
-            <button onClick={() => login('token', { id: 1, username: 'testuser', roleId: 3 } as any)}>Login</button>
+            <button onClick={() => login('token', { id: 1, username: 'testuser', roleId: 3, email: 'test@example.com', statusId: 1 })}>Login</button>
             <button onClick={() => logout()}>Logout</button>
             <div data-testid="can-delete">{hasPermission('delete_records') ? 'Yes' : 'No'}</div>
             <div data-testid="can-view">{hasPermission('view_all') ? 'Yes' : 'No'}</div>
@@ -68,8 +69,8 @@ describe('AuthContext', () => {
     })
 
     it('initializes with user if session check succeeds', async () => {
-        const mockUser = { id: 1, username: 'activeuser', roleId: 3 }
-        vi.mocked(authService.getCurrentUser).mockResolvedValue(mockUser as any)
+        const mockUser: UserDTO = { id: 1, username: 'activeuser', roleId: 3, email: 'active@test.com', statusId: 1 }
+        vi.mocked(authService.getCurrentUser).mockResolvedValue(mockUser)
 
         render(
             <AuthProvider>
@@ -104,8 +105,8 @@ describe('AuthContext', () => {
     })
 
     it('exercises logout calling service and clearing state', async () => {
-        const mockUser = { id: 1, username: 'logoutuser', roleId: 3 }
-        vi.mocked(authService.getCurrentUser).mockResolvedValue(mockUser as any)
+        const mockUser: UserDTO = { id: 1, username: 'logoutuser', roleId: 3, email: 'log@test.com', statusId: 1 }
+        vi.mocked(authService.getCurrentUser).mockResolvedValue(mockUser)
         vi.mocked(authService.logout).mockResolvedValue()
 
         render(
@@ -130,8 +131,8 @@ describe('AuthContext', () => {
 
     it('checks permissions correctly', async () => {
         // Test as assistant (roleId: 3)
-        const mockUser = { id: 1, username: 'assistant', roleId: 3 }
-        vi.mocked(authService.getCurrentUser).mockResolvedValue(mockUser as any)
+        const mockUser: UserDTO = { id: 1, username: 'assistant', roleId: 3, email: 'assist@test.com', statusId: 1 }
+        vi.mocked(authService.getCurrentUser).mockResolvedValue(mockUser)
 
         render(
             <AuthProvider>
@@ -148,8 +149,8 @@ describe('AuthContext', () => {
 
     it('checks admin permissions correctly', async () => {
         // Test as admin (roleId: 1)
-        const mockUser = { id: 1, username: 'admin', roleId: 1 }
-        vi.mocked(authService.getCurrentUser).mockResolvedValue(mockUser as any)
+        const mockUser: UserDTO = { id: 1, username: 'admin', roleId: 1, email: 'admin@test.com', statusId: 1 }
+        vi.mocked(authService.getCurrentUser).mockResolvedValue(mockUser)
 
         render(
             <AuthProvider>
