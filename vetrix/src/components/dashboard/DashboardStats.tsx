@@ -8,7 +8,7 @@ import { useDashboardData } from "@/src/hooks/useDashboardData"
  */
 export function DashboardStats() {
     const { stats, isLoading, error } = useDashboardData()
-    const { totalOwners, totalPets, todayAppointments, monthlyRevenue } = stats
+    const { owners, pets, todaysAppointments, monthlyRevenue } = stats
 
     if (error) {
         return (
@@ -44,7 +44,7 @@ export function DashboardStats() {
     const statItems = [
         {
             title: "Total de propietarios",
-            value: totalOwners,
+            value: owners,
             icon: Users,
             description: "Clientes activos en el sistema",
             bgColor: "bg-blue-100",
@@ -52,7 +52,7 @@ export function DashboardStats() {
         },
         {
             title: "Total de mascotas",
-            value: totalPets,
+            value: pets,
             icon: Heart,
             description: "Pacientes bajo atención médica",
             bgColor: "bg-pink-100",
@@ -60,7 +60,7 @@ export function DashboardStats() {
         },
         {
             title: "Citas de hoy",
-            value: todayAppointments,
+            value: todaysAppointments,
             icon: Calendar,
             description: "Citas programadas",
             bgColor: "bg-orange-100",
