@@ -30,6 +30,6 @@ describe('Button Component', () => {
     it('applies variant styles', () => {
         const { container } = render(<Button variant="destructive">Delete</Button>)
         const button = container.querySelector('button')
-        expect(button).toHaveClass('destructive')
+        expect(button).toHaveClass('bg-destructive')
     })
 })
