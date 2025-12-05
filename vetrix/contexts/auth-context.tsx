@@ -3,13 +3,13 @@
 import type React from "react"
 import { createContext, useContext, useEffect, useState } from "react"
 import { useRouter, usePathname } from "next/navigation"
-import { User } from "@/lib/database/database"
+import { UserDTO } from "@/lib/api/types/dto"
 import { authService } from "@/services/authService"
 
 interface AuthContextType {
-  user: User | null
+  user: UserDTO | null
   token: string | null
-  login: (token: string, user: User) => void
+  login: (token: string, user: UserDTO) => void
   logout: () => void
   isLoading: boolean
   hasPermission: (permission: string) => boolean
@@ -31,7 +31,7 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const [user, setUser] = useState<User | null>(null)
+  const [user, setUser] = useState<UserDTO | null>(null)
   // Token is now managed by HttpOnly cookies, so we don't expose it in state directly
   // logic requiring token should use authService or server actions
   const [token, setToken] = useState<string | null>(null)
@@ -63,7 +63,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }
 
-  const login = (newToken: string, newUser: User) => {
+  const login = (newToken: string, newUser: UserDTO) => {
     // legacy support for signature, but token is now in cookie
     setToken(newToken)
     setUser(newUser)
