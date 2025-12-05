@@ -24,6 +24,7 @@ import { UserStats } from "@/src/components/users/UserStats"
 import { UserFilters } from "@/src/components/users/UserFilters"
 import { UsersTable } from "@/src/components/users/UsersTable"
 import { EditUserForm } from "@/src/components/users/EditUserForm"
+import { PaginationControls } from "@/src/components/users/PaginationControls"
 
 export default function UsersPage() {
   const [isRegisterOpen, setIsRegisterOpen] = useState(false)
@@ -31,10 +32,27 @@ export default function UsersPage() {
   const [editUser, setEditUser] = useState<UserDTO | null>(null)
   const [roleFilter, setRoleFilter] = useState("all")
   const [searchTerm, setSearchTerm] = useState("")
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(20)
+
   const { toast } = useToast()
 
-  // Fetch users from API
-  const { users = [], isLoading, deleteUser: deleteUserMutation, updateUser: updateUserMutation } = useUsers()
+  // Fetch users with pagination and filtering
+  const {
+    users = [],
+    pagination,
+    isLoading,
+    deleteUser: deleteUserMutation,
+    updateUser: updateUserMutation,
+  } = useUsers({
+    enablePagination: true,
+    page: currentPage,
+    limit: pageSize,
+    search: searchTerm || undefined,
+    roleId: roleFilter !== "all" ? parseInt(roleFilter) : undefined,
+  })
 
   const handleDeleteUser = async (user: UserDTO) => {
     // Prevent deleting the last admin
@@ -54,7 +72,7 @@ export default function UsersPage() {
 
   const handleEditUser = async (userId: number, data: UserUpdateInput) => {
     // Check if trying to remove last admin
-    const userToEdit = users.find(u => u.id === userId)
+    const userToEdit = users.find((u) => u.id === userId)
     if (userToEdit && userToEdit.roleId === 1 && data.roleId !== 1) {
       const adminCount = users.filter((u) => u.roleId === 1).length
       if (adminCount <= 1) {
@@ -70,16 +88,25 @@ export default function UsersPage() {
     await updateUserMutation.mutateAsync({ id: userId, data })
   }
 
-  // Client-side filtering
-  const filteredUsers = users.filter((user) => {
-    const matchesRole = roleFilter === "all" || String(user.roleId) === roleFilter
-    const searchLower = searchTerm.toLowerCase()
-    const matchesSearch =
-      user.username.toLowerCase().includes(searchLower) ||
-      user.email.toLowerCase().includes(searchLower)
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage)
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }
 
-    return matchesRole && matchesSearch
-  })
+  const handlePageSizeChange = (newSize: number) => {
+    setPageSize(newSize)
+    setCurrentPage(1) // Reset to first page when changing page size
+  }
+
+  const handleSearchChange = (term: string) => {
+    setSearchTerm(term)
+    setCurrentPage(1) // Reset to first page when searching
+  }
+
+  const handleRoleFilterChange = (role: string) => {
+    setRoleFilter(role)
+    setCurrentPage(1) // Reset to first page when filtering
+  }
 
   if (isLoading) {
     return (
@@ -112,23 +139,33 @@ export default function UsersPage() {
               </Button>
             </div>
 
-            {/* Statistics */}
+            {/* Statistics - Note: Stats now show current page users only */}
             <UserStats users={users} />
 
             {/* Filters */}
             <UserFilters
               roleFilter={roleFilter}
-              onRoleFilterChange={setRoleFilter}
+              onRoleFilterChange={handleRoleFilterChange}
               searchTerm={searchTerm}
-              onSearchChange={setSearchTerm}
+              onSearchChange={handleSearchChange}
             />
 
             {/* Users List */}
-            <UsersTable
-              users={filteredUsers}
-              onEdit={(user) => setEditUser(user)}
-              onDelete={(user) => setDeleteUser(user)}
-            />
+            <UsersTable users={users} onEdit={(user) => setEditUser(user)} onDelete={(user) => setDeleteUser(user)} />
+
+            {/* Pagination Controls */}
+            {pagination && (
+              <PaginationControls
+                currentPage={pagination.currentPage}
+                totalPages={pagination.totalPages}
+                pageSize={pagination.itemsPerPage}
+                totalItems={pagination.totalItems}
+                hasNextPage={pagination.hasNextPage}
+                hasPreviousPage={pagination.hasPreviousPage}
+                onPageChange={handlePageChange}
+                onPageSizeChange={handlePageSizeChange}
+              />
+            )}
 
             {/* Register Form Dialog */}
             <RegisterForm open={isRegisterOpen} onOpenChange={setIsRegisterOpen} />
@@ -148,8 +185,8 @@ export default function UsersPage() {
                 <AlertDialogHeader>
                   <AlertDialogTitle>Eliminar usuario</AlertDialogTitle>
                   <AlertDialogDescription>
-                    ¿Está seguro de que desea eliminar el usuario "{deleteUser?.username}" ({deleteUser?.email})?
-                    Esta acción no se puede deshacer.
+                    ¿Está seguro de que desea eliminar el usuario "{deleteUser?.username}" ({deleteUser?.email})? Esta
+                    acción no se puede deshacer.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
