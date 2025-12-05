@@ -36,9 +36,9 @@ export default function AppointmentsPage() {
   const updateAppointmentMutation = useUpdateAppointment()
   const deleteAppointmentMutation = useDeleteAppointment()
 
-  const canDelete = user?.role === "admin" || user?.role === "vet"
-  const canEdit = user?.role === "admin" || user?.role === "vet" || user?.role === "assistant"
-  const canAdd = user?.role === "admin" || user?.role === "vet" || user?.role === "assistant"
+  const canDelete = user?.roleId === 1 || user?.roleId === 2
+  const canEdit = user?.roleId === 1 || user?.roleId === 2 || user?.roleId === 3
+  const canAdd = user?.roleId === 1 || user?.roleId === 2 || user?.roleId === 3
 
   const handleAddAppointment = () => {
     if (!canAdd) {
@@ -81,7 +81,7 @@ export default function AppointmentsPage() {
     }
 
     try {
-      await deleteAppointmentMutation.mutateAsync(appointment.id)
+      await deleteAppointmentMutation.mutateAsync(appointment.id.toString())
       toast({
         title: "Éxito",
         description: "Cita eliminada con éxito.",
@@ -129,7 +129,7 @@ export default function AppointmentsPage() {
             <div>
               <h1 className="text-3xl font-bold">Citas</h1>
               <p className="text-muted-foreground">Gestionar y programar citas para mascotas</p>
-              {user?.role === "assistant" && (
+              {user?.roleId === 3 && (
                 <p className="text-sm text-orange-600 mt-1">
                   Acceso de asistente: puede crear y editar citas, pero no eliminarlas.
                 </p>
