@@ -139,7 +139,7 @@ export default function PetsPage() {
             <div>
               <h1 className="text-3xl font-bold">Pets</h1>
               <p className="text-muted-foreground">Manage all pets and their information.</p>
-              {user?.role === "assistant" && (
+              {user?.roleId === 3 && (
                 <p className="text-sm text-orange-600 mt-1">
                   Assistant Access: You can create and edit pets, but cannot delete them.
                 </p>

@@ -23,9 +23,9 @@ export default function OwnersPage() {
   const { toast } = useToast()
   const { user } = useAuth()
 
-  const canDelete = user?.role === "admin" || user?.role === "vet"
-  const canEdit = user?.role === "admin" || user?.role === "vet" || user?.role === "assistant"
-  const canAdd = user?.role === "admin" || user?.role === "vet" || user?.role === "assistant"
+  const canDelete = user?.roleId === 1 || user?.roleId === 2
+  const canEdit = user?.roleId === 1 || user?.roleId === 2 || user?.roleId === 3
+  const canAdd = user?.roleId === 1 || user?.roleId === 2 || user?.roleId === 3
 
   const handleAddOwner = () => {
     if (!canAdd) {
@@ -114,7 +114,7 @@ export default function OwnersPage() {
             <div>
               <h1 className="text-3xl font-bold">Owners</h1>
               <p className="text-muted-foreground">Manage pet owners and their contact information.</p>
-              {user?.role === "assistant" && (
+              {user?.roleId === 3 && (
                 <p className="text-sm text-orange-600 mt-1">
                   Assistant Access: Can create and edit owners, but cannot delete them.
                 </p>

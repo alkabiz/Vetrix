@@ -27,7 +27,7 @@ export default function MedicalRecordsPage() {
   const { toast } = useToast()
   const { user } = useAuth()
 
-  const canModifyRecords = user && ["admin", "vet"].includes(user.role)
+  const canModifyRecords = user && [1, 2].includes(user.roleId)
 
   const handleAddRecord = () => {
     if (!canModifyRecords) {
@@ -137,13 +137,13 @@ export default function MedicalRecordsPage() {
           <div>
             <h1 className="text-3xl font-bold">Historial médico</h1>
             <p className="text-muted-foreground">
-              {user?.role === "assistant"
+              {user?.roleId === 3
                 ? "Ver consultas, diagnósticos y tratamientos de mascotas (acceso de solo lectura)."
                 : "Realice un seguimiento de las consultas, diagnósticos y tratamientos de mascotas."}
             </p>
           </div>
 
-          {user?.role === "assistant" && (
+          {user?.roleId === 3 && (
             <Card className="bg-gradient-to-r from-amber-50 to-yellow-50 border-amber-200">
               <CardHeader>
                 <CardTitle className="text-amber-900">Acceso asistente</CardTitle>
