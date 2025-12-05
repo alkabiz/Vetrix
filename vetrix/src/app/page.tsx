@@ -12,6 +12,9 @@ import { DashboardRecentActivity } from "@/src/components/dashboard/DashboardRec
 import { DashboardRolePanel } from "@/src/components/dashboard/DashboardRolePanel"
 import { DashboardRevenueTrend } from "@/src/components/dashboard/DashboardRevenueTrend"
 import { DashboardAppointmentChart } from "@/src/components/dashboard/DashboardAppointmentChart"
+import { AdminMetrics } from "@/src/components/dashboard/AdminMetrics"
+import { VetSchedule } from "@/src/components/dashboard/VetSchedule"
+import { AssistantTasks } from "@/src/components/dashboard/AssistantTasks"
 
 export default function DashboardPage() {
   const { user } = useAuth()
@@ -29,11 +32,83 @@ export default function DashboardPage() {
 
     switch (user.roleId) {
       case 1:
-        return "Administra tu clínica veterinaria con acceso administrativo completo."
+        return "Panel de administración del sistema"
       case 2:
-        return "Esto es lo que está sucediendo hoy en su clínica"
+        return "Panel clínico veterinario"
+      case 3:
+        return "Panel de asistente administrativo"
       default:
         return "Bienvenido al sistema de gestión veterinaria."
+    }
+  }
+
+  // Role-based dashboard layouts
+  const renderAdminDashboard = () => (
+    <>
+      <DashboardStats />
+
+      <div className="grid gap-6 md:grid-cols-3">
+        <div className="md:col-span-2">
+          <DashboardRevenueTrend />
+        </div>
+        <AdminMetrics />
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        <DashboardAppointmentChart />
+        <DashboardRecentActivity />
+      </div>
+
+      <DashboardQuickActions user={user} />
+    </>
+  )
+
+  const renderVetDashboard = () => (
+    <>
+      <DashboardStats />
+
+      <div className="grid gap-6 md:grid-cols-2">
+        <VetSchedule />
+        <DashboardAppointmentChart />
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        <DashboardQuickActions user={user} />
+        <DashboardRecentActivity />
+      </div>
+    </>
+  )
+
+  const renderAssistantDashboard = () => (
+    <>
+      <DashboardStats />
+
+      <div className="grid gap-6 md:grid-cols-3">
+        <div className="md:col-span-2">
+          <DashboardRevenueTrend />
+        </div>
+        <AssistantTasks />
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        <DashboardQuickActions user={user} />
+        <DashboardRecentActivity />
+      </div>
+    </>
+  )
+
+  const renderDashboardContent = () => {
+    if (!user) return <DashboardStats />
+
+    switch (user.roleId) {
+      case 1: // Admin
+        return renderAdminDashboard()
+      case 2: // Vet
+        return renderVetDashboard()
+      case 3: // Assistant
+        return renderAssistantDashboard()
+      default:
+        return <DashboardStats />
     }
   }
 
@@ -58,20 +133,8 @@ export default function DashboardPage() {
           {/* Role-specific Panel */}
           <DashboardRolePanel user={user} />
 
-          {/* Stats Cards - Now with real data! */}
-          <DashboardStats />
-
-          {/* Charts - Revenue and Appointments */}
-          <div className="grid gap-6 md:grid-cols-2">
-            <DashboardRevenueTrend />
-            <DashboardAppointmentChart />
-          </div>
-
-          {/* Quick Actions and Recent Activity */}
-          <div className="grid gap-6 md:grid-cols-2">
-            <DashboardQuickActions user={user} />
-            <DashboardRecentActivity />
-          </div>
+          {/* Role-Based Dashboard Content */}
+          {renderDashboardContent()}
         </div>
       </DashboardLayout>
     </AuthWrapper>
