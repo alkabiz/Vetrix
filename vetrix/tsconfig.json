@@ -1,6 +1,10 @@
 {
   "compilerOptions": {
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "target": "es6",
     "skipLibCheck": true,
@@ -11,7 +15,7 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "incremental": true,
     "plugins": [
       {
@@ -19,16 +23,40 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"],
-      "forms/*": ["./components/forms/*"],
-      "validation/*": ["./lib/utils/validation/*"],
-      "api/*": ["./lib/api/*"],
-      "database/*": ["./lib/database/*"],
-      "types/*": ["./lib/types/*"],
-      "config/*": ["./lib/config/*"],
-      "auth/*": ["./lib/auth/*"]
+      "@/*": [
+        "./*"
+      ],
+      "forms/*": [
+        "./components/forms/*"
+      ],
+      "validation/*": [
+        "./lib/utils/validation/*"
+      ],
+      "api/*": [
+        "./lib/api/*"
+      ],
+      "database/*": [
+        "./lib/database/*"
+      ],
+      "types/*": [
+        "./lib/types/*"
+      ],
+      "config/*": [
+        "./lib/config/*"
+      ],
+      "auth/*": [
+        "./lib/auth/*"
+      ]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }
