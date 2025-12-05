@@ -46,7 +46,7 @@ export default function DashboardPage() {
     const actions = [...baseActions]
 
     // Add role-specific actions
-    if (user.role === "admin") {
+    if (user.roleId === 1) {
       actions.push({
         href: "/users",
         icon: UserCog,
@@ -55,7 +55,7 @@ export default function DashboardPage() {
       })
     }
 
-    if (["admin", "vet"].includes(user.role)) {
+    if ([1, 2].includes(user.roleId)) {
       actions.push({
         href: "/medical-records",
         icon: FileText,
@@ -76,9 +76,9 @@ export default function DashboardPage() {
             <div>
               <h1 className="text-3xl font-bold tracking-tight">{getWelcomeMessage()}</h1>
               <p className="text-muted-foreground">
-                {user?.role === "admin"
+                {user?.roleId === 1
                   ? "Administra tu clínica veterinaria con acceso administrativo completo."
-                  : user?.role === "vet"
+                  : user?.roleId === 2
                     ? "Esto es lo que está sucediendo hoy en su clínica"
                     : "Bienvenido al sistema de gestión veterinaria."}
               </p>
@@ -92,7 +92,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Role-specific stats or info */}
-          {user?.role === "admin" && (
+          {user?.roleId === 1 && (
             <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
               <CardHeader>
                 <CardTitle className="text-blue-900">Panel de control del administrador</CardTitle>
@@ -104,7 +104,7 @@ export default function DashboardPage() {
             </Card>
           )}
 
-          {user?.role === "assistant" && (
+          {user?.roleId === 3 && (
             <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
               <CardHeader>
                 <CardTitle className="text-green-900">Panel de control del asistente</CardTitle>
@@ -191,7 +191,7 @@ export default function DashboardPage() {
                   Acciones rápidas
                 </CardTitle>
                 <CardDescription>
-                  {user?.role === "admin" ? "Administrative and management tasks" : "Common tasks to get you started"}
+                  {user?.roleId === 1 ? "Administrative and management tasks" : "Common tasks to get you started"}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
