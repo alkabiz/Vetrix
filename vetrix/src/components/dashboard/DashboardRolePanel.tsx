@@ -1,8 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import type { User } from "@/lib/database/database"
+import type { UserDTO } from "@/lib/api/types/dto"
 
 interface DashboardRolePanelProps {
-    user: User | null
+    user: UserDTO | null
 }
 
 /**
