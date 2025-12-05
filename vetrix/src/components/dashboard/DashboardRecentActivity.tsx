@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Activity } from "lucide-react"
-import { useAuditLog } from "@/src/hooks/useAuditLog"
+import { useDashboardData } from "@/src/hooks/useDashboardData"
 import { formatDistanceToNow } from "date-fns"
 import { es } from "date-fns/locale"
 
@@ -10,7 +10,7 @@ import { es } from "date-fns/locale"
  * DashboardRecentActivity - Shows real activity from audit logs
  */
 export function DashboardRecentActivity() {
-    const { logs, isLoading } = useAuditLog({ limit: 5 })
+    const { recentActivity: logs, isLoading } = useDashboardData()
 
     const getActivityColor = (action: string) => {
         switch (action) {
