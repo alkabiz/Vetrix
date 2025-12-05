@@ -10,6 +10,8 @@ import { DashboardStats } from "@/src/components/dashboard/DashboardStats"
 import { DashboardQuickActions } from "@/src/components/dashboard/DashboardQuickActions"
 import { DashboardRecentActivity } from "@/src/components/dashboard/DashboardRecentActivity"
 import { DashboardRolePanel } from "@/src/components/dashboard/DashboardRolePanel"
+import { DashboardRevenueTrend } from "@/src/components/dashboard/DashboardRevenueTrend"
+import { DashboardAppointmentChart } from "@/src/components/dashboard/DashboardAppointmentChart"
 
 export default function DashboardPage() {
   const { user } = useAuth()
@@ -58,6 +60,12 @@ export default function DashboardPage() {
 
           {/* Stats Cards - Now with real data! */}
           <DashboardStats />
+
+          {/* Charts - Revenue and Appointments */}
+          <div className="grid gap-6 md:grid-cols-2">
+            <DashboardRevenueTrend />
+            <DashboardAppointmentChart />
+          </div>
 
           {/* Quick Actions and Recent Activity */}
           <div className="grid gap-6 md:grid-cols-2">
