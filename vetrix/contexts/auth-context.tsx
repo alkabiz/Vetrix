@@ -3,13 +3,7 @@
 import type React from "react"
 import { createContext, useContext, useEffect, useState } from "react"
 import { useRouter, usePathname } from "next/navigation"
-
-interface User {
-  id: number
-  username: string
-  email: string
-  role: "admin" | "vet" | "assistant"
-}
+import { User } from "@/lib/database/database"
 
 interface AuthContextType {
   user: User | null
@@ -46,17 +40,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const hasPermission = (permission: string): boolean => {
     if (!user) return false
 
+    // Role IDs: 1=admin, 2=vet, 3=assistant
     switch (permission) {
       case "manage_users":
-        return user.role === "admin"
+        return user.roleId === 1
       case "manage_medical_records":
-        return ["admin", "vet"].includes(user.role)
+        return [1, 2].includes(user.roleId)
       case "delete_records":
-        return ["admin", "vet"].includes(user.role)
+        return [1, 2].includes(user.roleId)
       case "view_all":
-        return ["admin", "vet", "assistant"].includes(user.role)
+        return [1, 2, 3].includes(user.roleId)
       case "create_basic":
-        return ["admin", "vet", "assistant"].includes(user.role)
+        return [1, 2, 3].includes(user.roleId)
       default:
         return false
     }
