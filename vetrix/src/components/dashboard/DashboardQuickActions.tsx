@@ -2,8 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Users, Heart, Calendar, FileText, UserCog, Plus, ArrowUpRight } from "lucide-react"
 import Link from "next/link"
-import { useQuery } from "@tanstack/react-query"
-import axios from "axios"
+import { useDashboardData } from "@/src/hooks/useDashboardData"
 import type { User } from "@/lib/database/database"
 
 interface QuickAction {
@@ -22,16 +21,9 @@ interface DashboardQuickActionsProps {
  * DashboardQuickActions - Role-based quick action links with dynamic counts
  */
 export function DashboardQuickActions({ user }: DashboardQuickActionsProps) {
-    // Fetch today's appointments count
-    const { data: appointmentsData } = useQuery({
-        queryKey: ["appointments", "today"],
-        queryFn: async () => {
-            const today = new Date().toISOString().split("T")[0]
-            const response = await axios.get<{ appointments: any[] }>(`/api/appointments?date=${today}`)
-            return response.data.appointments.length
-        },
-        enabled: !!user,
-    })
+    // Fetch dashboard data
+    const { stats } = useDashboardData()
+    const appointmentsData = stats.todayAppointments
 
     if (!user) return null
 
