@@ -95,7 +95,27 @@ export function DashboardRecentActivity() {
                                 <div className={`h-2 w-2 rounded-full ${colors.dot} mt-2`} />
                                 <div className="flex-1">
                                     <div className="flex items-center justify-between">
-                                    </CardContent>
-                                </Card>
-                                )
+                                        <p className="font-medium text-sm">{getActivityDescription(log)}</p>
+                                        <Badge variant="secondary" className="text-xs">
+                                            {getActivityLabel(log.action)}
+                                        </Badge>
+                                    </div>
+                                    <div className="flex items-center gap-2 mt-1">
+                                        <p className="text-muted-foreground text-xs">
+                                            {log.performedByUsername && `Por ${log.performedByUsername}`}
+                                        </p>
+                                        {log.createdAt && (
+                                            <p className="text-muted-foreground text-xs">
+                                                • {formatDistanceToNow(new Date(log.createdAt), { addSuffix: true, locale: es })}
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        )
+                    })
+                )}
+            </CardContent>
+        </Card>
+    )
 }
