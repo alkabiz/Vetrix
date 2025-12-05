@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Shield, UserCheck, Users, MoreHorizontal, Trash2, Edit } from "lucide-react"
 import { UserDTO } from "@/lib/api/types/user.types"
@@ -9,12 +10,14 @@ interface UserCardProps {
     user: UserDTO
     onEdit?: (user: UserDTO) => void
     onDelete?: (user: UserDTO) => void
+    selected?: boolean
+    onSelect?: (userId: number, selected: boolean) => void
 }
 
 /**
  * UserCard - Displays a single user with their details and actions
  */
-export function UserCard({ user, onEdit, onDelete }: UserCardProps) {
+export function UserCard({ user, onEdit, onDelete, selected = false, onSelect }: UserCardProps) {
     const getRoleIcon = (roleId: number) => {
         switch (roleId) {
             case 1: // admin
@@ -67,11 +70,25 @@ export function UserCard({ user, onEdit, onDelete }: UserCardProps) {
         }
     }
 
+    const handleCheckboxChange = (checked: boolean) => {
+        if (onSelect) {
+            onSelect(user.id, checked)
+        }
+    }
+
     return (
-        <Card>
+        <Card className={selected ? "border-blue-500 bg-blue-50/50" : ""}>
             <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
+                        {/* Checkbox for bulk selection */}
+                        {onSelect && (
+                            <Checkbox
+                                checked={selected}
+                                onCheckedChange={handleCheckboxChange}
+                                onClick={(e) => e.stopPropagation()}
+                            />
+                        )}
                         <div className="p-2 bg-blue-100 rounded-full">
                             {getRoleIcon(user.roleId)}
                         </div>
