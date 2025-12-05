@@ -1,13 +1,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Users, Heart, Calendar, TrendingUp, ArrowUpRight, Activity } from "lucide-react"
-import { useDashboardStats } from "@/src/hooks/useDashboardStats"
+import { useDashboardData } from "@/src/hooks/useDashboardData"
 
 /**
  * DashboardStats - Displays 4 key metrics with real-time data
  */
 export function DashboardStats() {
-    const { totalOwners, totalPets, todayAppointments, monthlyRevenue, isLoading, error } = useDashboardStats()
+    const { stats, isLoading, error } = useDashboardData()
+    const { totalOwners, totalPets, todayAppointments, monthlyRevenue } = stats
 
     if (error) {
         return (
@@ -40,7 +41,7 @@ export function DashboardStats() {
         )
     }
 
-    const stats = [
+    const statItems = [
         {
             title: "Total de propietarios",
             value: totalOwners,
@@ -77,7 +78,7 @@ export function DashboardStats() {
 
     return (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {stats.map((stat, index) => (
+            {statItems.map((stat, index) => (
                 <Card key={index} className="hover:shadow-md transition-shadow">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
