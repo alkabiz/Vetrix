@@ -1,14 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    eslint: {
-        ignoreDuringBuilds: true,
-    },
     typescript: {
         ignoreBuildErrors: true,
     },
     images: {
         unoptimized: true,
     },
+    // Move from experimental to top-level for Next.js 16
+    serverExternalPackages: ['better-sqlite3', 'jsonwebtoken'],
     async headers() {
         return [
             {
@@ -37,14 +36,6 @@ const nextConfig = {
                 ],
             },
         ]
-    },
-    experimental: {
-        serverComponentsExternalPackages: ['better-sqlite3'],
-    },
-    api: {
-        bodyParser: {
-            sizeLimit: '1mb',
-        },
     },
 }
 
