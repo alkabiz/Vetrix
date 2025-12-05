@@ -902,6 +902,20 @@ export interface UserActivityLog {
   createdAt: string // ISO datetime
 }
 
+// usr_audit_logs.interface.ts
+/**
+ * AuditLog - Audit log for user management actions
+ * Tracks all user-related operations for compliance and security
+ */
+export interface AuditLog {
+  id: number
+  userId?: number | null // User being affected (nullable for bulk operations)
+  action: string // Action performed (user_created, user_updated, etc.)
+  performedBy: number // User who performed the action (FK → usr_users.id)
+  details?: string | null // JSON or text details about the action
+  createdAt: string // ISO datetime
+}
+
 export const sql = {
   // Mock SQL function for compatibility
   query: (query: string, params?: any[]) => {
