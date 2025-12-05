@@ -18,6 +18,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Label } from "@/components/ui/label"
 import { UserDTO, UserUpdateInput } from "@/lib/api/types/user.types"
 import { useUsers } from "@/src/hooks/useUsers"
 import { UserStats } from "@/src/components/users/UserStats"
@@ -25,6 +35,7 @@ import { UserFilters } from "@/src/components/users/UserFilters"
 import { UsersTable } from "@/src/components/users/UsersTable"
 import { EditUserForm } from "@/src/components/users/EditUserForm"
 import { PaginationControls } from "@/src/components/users/PaginationControls"
+import { BulkActionsBar } from "@/src/components/users/BulkActionsBar"
 
 export default function UsersPage() {
   const [isRegisterOpen, setIsRegisterOpen] = useState(false)
@@ -37,6 +48,12 @@ export default function UsersPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(20)
 
+  // Bulk actions state
+  const [selectedUsers, setSelectedUsers] = useState<number[]>([])
+  const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false)
+  const [showBulkRoleDialog, setShowBulkRoleDialog] = useState(false)
+  const [bulkRoleId, setBulkRoleId] = useState("")
+
   const { toast } = useToast()
 
   // Fetch users with pagination and filtering
@@ -46,6 +63,8 @@ export default function UsersPage() {
     isLoading,
     deleteUser: deleteUserMutation,
     updateUser: updateUserMutation,
+    bulkDelete: bulkDeleteMutation,
+    bulkRoleChange: bulkRoleChangeMutation,
   } = useUsers({
     enablePagination: true,
     page: currentPage,
@@ -90,22 +109,98 @@ export default function UsersPage() {
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage)
+    setSelectedUsers([]) // Clear selection on page change
     window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
   const handlePageSizeChange = (newSize: number) => {
     setPageSize(newSize)
-    setCurrentPage(1) // Reset to first page when changing page size
+    setCurrentPage(1)
+    setSelectedUsers([]) // Clear selection on page size change
   }
 
   const handleSearchChange = (term: string) => {
     setSearchTerm(term)
-    setCurrentPage(1) // Reset to first page when searching
+    setCurrentPage(1)
+    setSelectedUsers([]) // Clear selection on search
   }
 
   const handleRoleFilterChange = (role: string) => {
     setRoleFilter(role)
-    setCurrentPage(1) // Reset to first page when filtering
+    setCurrentPage(1)
+    setSelectedUsers([]) // Clear selection on filter change
+  }
+
+  const handleSelectUser = (userId: number, selected: boolean) => {
+    setSelectedUsers((prev) => (selected ? [...prev, userId] : prev.filter((id) => id !== userId)))
+  }
+
+  const handleClearSelection = () => {
+    setSelectedUsers([])
+  }
+
+  const handleBulkDelete = () => {
+    setShowBulkDeleteDialog(true)
+  }
+
+  const confirmBulkDelete = () => {
+    // Check if trying to delete all admins
+    const selectedUserObjects = users.filter((u) => selectedUsers.includes(u.id))
+    const adminsToDelete = selectedUserObjects.filter((u) => u.roleId === 1)
+    const totalAdmins = users.filter((u) => u.roleId === 1).length
+
+    if (adminsToDelete.length > 0 && adminsToDelete.length >= totalAdmins) {
+      toast({
+        title: "Cannot delete all admins",
+        description: "You cannot delete all administrator users.",
+        variant: "destructive",
+      })
+      setShowBulkDeleteDialog(false)
+      return
+    }
+
+    bulkDeleteMutation.mutate(selectedUsers)
+    setSelectedUsers([])
+    setShowBulkDeleteDialog(false)
+  }
+
+  const handleBulkRoleChange = () => {
+    setBulkRoleId("")
+    setShowBulkRoleDialog(true)
+  }
+
+  const confirmBulkRoleChange = () => {
+    if (!bulkRoleId) {
+      toast({
+        title: "Select a role",
+        description: "Please select a role before continuing.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    const newRoleId = parseInt(bulkRoleId)
+
+    // Check if changing admins to non-admin would leave no admins
+    if (newRoleId !== 1) {
+      const selectedUserObjects = users.filter((u) => selectedUsers.includes(u.id))
+      const adminsToChange = selectedUserObjects.filter((u) => u.roleId === 1)
+      const totalAdmins = users.filter((u) => u.roleId === 1).length
+
+      if (adminsToChange.length > 0 && adminsToChange.length >= totalAdmins) {
+        toast({
+          title: "Cannot change all admins",
+          description: "You cannot change all administrator users to a different role.",
+          variant: "destructive",
+        })
+        setShowBulkRoleDialog(false)
+        return
+      }
+    }
+
+    bulkRoleChangeMutation.mutate({ userIds: selectedUsers, roleId: newRoleId })
+    setSelectedUsers([])
+    setShowBulkRoleDialog(false)
   }
 
   if (isLoading) {
@@ -139,7 +234,7 @@ export default function UsersPage() {
               </Button>
             </div>
 
-            {/* Statistics - Note: Stats now show current page users only */}
+            {/* Statistics */}
             <UserStats users={users} />
 
             {/* Filters */}
@@ -151,7 +246,13 @@ export default function UsersPage() {
             />
 
             {/* Users List */}
-            <UsersTable users={users} onEdit={(user) => setEditUser(user)} onDelete={(user) => setDeleteUser(user)} />
+            <UsersTable
+              users={users}
+              onEdit={(user) => setEditUser(user)}
+              onDelete={(user) => setDeleteUser(user)}
+              selectedUsers={selectedUsers}
+              onSelectUser={handleSelectUser}
+            />
 
             {/* Pagination Controls */}
             {pagination && (
@@ -167,6 +268,14 @@ export default function UsersPage() {
               />
             )}
 
+            {/* Bulk Actions Bar */}
+            <BulkActionsBar
+              selectedCount={selectedUsers.length}
+              onClearSelection={handleClearSelection}
+              onBulkDelete={handleBulkDelete}
+              onBulkRoleChange={handleBulkRoleChange}
+            />
+
             {/* Register Form Dialog */}
             <RegisterForm open={isRegisterOpen} onOpenChange={setIsRegisterOpen} />
 
@@ -179,7 +288,7 @@ export default function UsersPage() {
               isSubmitting={updateUserMutation.isPending}
             />
 
-            {/* Delete Confirmation Dialog */}
+            {/* Delete Single User Confirmation */}
             <AlertDialog open={!!deleteUser} onOpenChange={() => setDeleteUser(null)}>
               <AlertDialogContent>
                 <AlertDialogHeader>
@@ -200,6 +309,56 @@ export default function UsersPage() {
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
+
+            {/* Bulk Delete Confirmation */}
+            <AlertDialog open={showBulkDeleteDialog} onOpenChange={setShowBulkDeleteDialog}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Eliminar usuarios seleccionados</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    ¿Está seguro de que desea eliminar {selectedUsers.length} usuario(s) seleccionado(s)? Esta acción no
+                    se puede deshacer.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={confirmBulkDelete} className="bg-red-600 hover:bg-red-700">
+                    Eliminar {selectedUsers.length} usuario(s)
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
+            {/* Bulk Role Change Dialog */}
+            <Dialog open={showBulkRoleDialog} onOpenChange={setShowBulkRoleDialog}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Cambiar rol de usuarios seleccionados</DialogTitle>
+                  <DialogDescription>
+                    Seleccione el nuevo rol para {selectedUsers.length} usuario(s) seleccionado(s).
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="py-4">
+                  <Label htmlFor="bulk-role">Nuevo rol</Label>
+                  <Select value={bulkRoleId} onValueChange={setBulkRoleId}>
+                    <SelectTrigger id="bulk-role" className="mt-2">
+                      <SelectValue placeholder="Seleccione un rol" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">Admin</SelectItem>
+                      <SelectItem value="2">Veterinarian</SelectItem>
+                      <SelectItem value="3">Assistant</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setShowBulkRoleDialog(false)}>
+                    Cancelar
+                  </Button>
+                  <Button onClick={confirmBulkRoleChange}>Cambiar rol</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
         </DashboardLayout>
       </ProtectedRoute>
