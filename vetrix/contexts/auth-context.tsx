@@ -4,6 +4,7 @@ import type React from "react"
 import { createContext, useContext, useEffect, useState } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { User } from "@/lib/database/database"
+import { authService } from "@/services/authService"
 
 interface AuthContextType {
   user: User | null
@@ -31,10 +32,15 @@ interface AuthProviderProps {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null)
+  // Token is now managed by HttpOnly cookies, so we don't expose it in state directly
+  // logic requiring token should use authService or server actions
   const [token, setToken] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
   const pathname = usePathname()
+
+  // We can import authService dynamically or use the imported instance
+  // import { authService } from "@/services/authService" needs to be at top level
 
   // Permission checking function
   const hasPermission = (permission: string): boolean => {
@@ -58,45 +64,52 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   const login = (newToken: string, newUser: User) => {
+    // legacy support for signature, but token is now in cookie
     setToken(newToken)
     setUser(newUser)
-    localStorage.setItem("token", newToken)
-    localStorage.setItem("user", JSON.stringify(newUser))
+    router.refresh() // Refresh server components
   }
 
-  const logout = () => {
-    setToken(null)
-    setUser(null)
-    localStorage.removeItem("token")
-    localStorage.removeItem("user")
-    router.push("/login")
+  const logout = async () => {
+    try {
+      await authService.logout()
+    } catch (error) {
+      console.error("Logout failed", error)
+    } finally {
+      setToken(null)
+      setUser(null)
+      router.push("/login")
+      router.refresh()
+    }
   }
 
-  // Check for existing session on mount
+  // Check for existing session on mount using authService
   useEffect(() => {
-    const storedToken = localStorage.getItem("token")
-    const storedUser = localStorage.getItem("user")
-
-    if (storedToken && storedUser) {
+    const checkSession = async () => {
       try {
-        const parsedUser = JSON.parse(storedUser)
-        setToken(storedToken)
-        setUser(parsedUser)
+        const currentUser = await authService.getCurrentUser()
+        if (currentUser) {
+          setUser(currentUser)
+          // We don't have the raw token anymore, but that's fine for cookie-auth
+          setToken("cookie-session")
+        }
       } catch (error) {
-        console.error("Error al analizar el usuario almacenado:", error)
-        localStorage.removeItem("token")
-        localStorage.removeItem("user")
+        console.error("Session check failed", error)
+        setUser(null)
+        setToken(null)
+      } finally {
+        setIsLoading(false)
       }
     }
 
-    setIsLoading(false)
+    checkSession()
   }, [])
 
   // Redirect logic
   useEffect(() => {
     if (!isLoading) {
       const isLoginPage = pathname === "/login"
-      const isAuthenticated = !!user && !!token
+      const isAuthenticated = !!user
 
       if (!isAuthenticated && !isLoginPage) {
         router.push("/login")
@@ -104,7 +117,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         router.push("/")
       }
     }
-  }, [user, token, isLoading, pathname, router])
+  }, [user, isLoading, pathname, router])
 
   const value = {
     user,
