@@ -1,17 +1,19 @@
 "use client"
 
 import type React from "react"
-import { createContext, useContext, useEffect, useState } from "react"
+import { createContext, useContext, useEffect, useState, useCallback } from "react"
 import { useRouter, usePathname } from "next/navigation"
-import { UserDTO } from "@/lib/api/types/dto"
+import { UserDTO, LoginInput } from "@/lib/api/types/dto"
 import { authService } from "@/services/authService"
+import { useToast } from "@/hooks/use-toast"
+import { AppError } from "@/src/lib/api/httpClient"
 
 interface AuthContextType {
   user: UserDTO | null
-  token: string | null
-  login: (token: string, user: UserDTO) => void
-  logout: () => void
+  login: (credentials: LoginInput) => Promise<void>
+  logout: () => Promise<void>
   isLoading: boolean
+  isAuthenticated: boolean
   hasPermission: (permission: string) => boolean
 }
 
@@ -32,18 +34,13 @@ interface AuthProviderProps {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<UserDTO | null>(null)
-  // Token is now managed by HttpOnly cookies, so we don't expose it in state directly
-  // logic requiring token should use authService or server actions
-  const [token, setToken] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
   const pathname = usePathname()
-
-  // We can import authService dynamically or use the imported instance
-  // import { authService } from "@/services/authService" needs to be at top level
+  const { toast } = useToast()
 
   // Permission checking function
-  const hasPermission = (permission: string): boolean => {
+  const hasPermission = useCallback((permission: string): boolean => {
     if (!user) return false
 
     // Role IDs: 1=admin, 2=vet, 3=assistant
@@ -61,42 +58,77 @@ export function AuthProvider({ children }: AuthProviderProps) {
       default:
         return false
     }
-  }
+  }, [user])
 
-  const login = (newToken: string, newUser: UserDTO) => {
-    // legacy support for signature, but token is now in cookie
-    setToken(newToken)
-    setUser(newUser)
-    router.refresh() // Refresh server components
+  const login = async (credentials: LoginInput) => {
+    try {
+      setIsLoading(true)
+      const response = await authService.login(credentials)
+      if (response && response.user) {
+         setUser(response.user)
+         toast({
+           title: "Bienvenido",
+           description: `Has iniciado sesión como ${response.user.username}`,
+         })
+         router.push("/")
+         router.refresh()
+      }
+    } catch (error: any) {
+      console.error("Login error", error)
+      const message = error instanceof AppError ? error.message : "Error al iniciar sesión"
+      toast({
+        variant: "destructive",
+        title: "Error de autenticación",
+        description: message,
+      })
+      throw error // Re-throw so the form can handle it if needed
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const logout = async () => {
     try {
       await authService.logout()
-    } catch (error) {
-      console.error("Logout failed", error)
-    } finally {
-      setToken(null)
       setUser(null)
+      toast({
+        title: "Sesión cerrada",
+        description: "Has cerrado sesión correctamente",
+      })
       router.push("/login")
       router.refresh()
+    } catch (error) {
+      console.error("Logout failed", error)
+      toast({
+        variant: "destructive",
+        title: "Error al salir",
+        description: "No se pudo cerrar la sesión correctamente",
+      })
     }
   }
 
-  // Check for existing session on mount using authService
+  // Check for existing session on mount
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const currentUser = await authService.getCurrentUser()
+        let currentUser = await authService.getCurrentUser()
+        
+        // If no active session, try to refresh (handles expired access token but valid refresh cookie)
+        if (!currentUser) {
+          try {
+            await authService.refreshToken()
+            currentUser = await authService.getCurrentUser()
+          } catch {
+            // Refresh failed or no refresh token - user remains unauthenticated
+          }
+        }
+
         if (currentUser) {
           setUser(currentUser)
-          // We don't have the raw token anymore, but that's fine for cookie-auth
-          setToken("cookie-session")
         }
       } catch (error) {
         console.error("Session check failed", error)
         setUser(null)
-        setToken(null)
       } finally {
         setIsLoading(false)
       }
@@ -121,10 +153,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const value = {
     user,
-    token,
     login,
     logout,
     isLoading,
+    isAuthenticated: !!user,
     hasPermission,
   }
 
