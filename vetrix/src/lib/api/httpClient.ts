@@ -1,4 +1,4 @@
-import { AuthResponse } from "@/lib/api/types/dto"
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosError } from "axios"
 
 // Standard API Error class
 export class AppError extends Error {
@@ -13,109 +13,72 @@ export class AppError extends Error {
   }
 }
 
-interface FetchOptions extends RequestInit {
-  params?: Record<string, string | number | boolean | undefined>
-}
+// Create Axios instance with defaults
+const axiosInstance: AxiosInstance = axios.create({
+  baseURL: "/api", // Default base URL for Next.js API routes
+  headers: {
+    "Content-Type": "application/json",
+  },
+  withCredentials: true, // Send cookies with requests
+})
 
-// Helper to handle API responses
-async function handleResponse<T>(response: Response): Promise<T> {
-  const contentType = response.headers.get("content-type")
-  const isJson = contentType?.includes("application/json")
-  
-  if (!response.ok) {
+// Response interceptor for error handling
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error: AxiosError<any>) => {
     let errorMessage = "An error occurred"
+    let statusCode = 500
     let errorCode = "UNKNOWN_ERROR"
     let errorDetails = null
 
-    if (isJson) {
-      try {
-        const errorData = await response.json()
-        errorMessage = errorData.error || errorData.message || errorMessage
-        errorCode = errorData.code || errorCode
-        errorDetails = errorData.details
-      } catch {
-        // failed to parse error json
+    if (error.response) {
+      // The request was made and the server responded with a status code
+      // that falls out of the range of 2xx
+      statusCode = error.response.status
+      const data = error.response.data
+
+      if (typeof data === "object" && data !== null) {
+        errorMessage = data.error || data.message || errorMessage
+        errorCode = data.code || errorCode
+        errorDetails = data.details
+      } else if (typeof data === "string") {
+        errorMessage = data
       }
+    } else if (error.request) {
+      // The request was made but no response was received
+      errorMessage = "No response received from server"
+      errorCode = "NETWORK_ERROR"
     } else {
-        errorMessage = await response.text()
+      // Something happened in setting up the request that triggered an Error
+      errorMessage = error.message
     }
 
-    throw new AppError(errorMessage, response.status, errorCode, errorDetails)
+    return Promise.reject(new AppError(errorMessage, statusCode, errorCode, errorDetails))
   }
+)
 
-  if (isJson) {
-    return response.json()
-  }
-
-  return response.text() as unknown as T
-}
-
-// Main HTTP Client
+// Wrapper to expose unified methods (or export the instance directly)
 export const httpClient = {
-  async get<T>(url: string, options: FetchOptions = {}): Promise<T> {
-    const { params, ...init } = options
-    const queryString = params 
-      ? "?" + new URLSearchParams(
-          Object.entries(params).reduce((acc, [key, value]) => {
-            if (value !== undefined) acc[key] = String(value)
-            return acc
-          }, {} as Record<string, string>)
-        ).toString()
-      : ""
-
-    const response = await fetch(url + queryString, {
-      ...init,
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        ...init.headers,
-      },
-    })
-
-    return handleResponse<T>(response)
+  get: async <T>(url: string, config?: AxiosRequestConfig): Promise<T> => {
+    const response = await axiosInstance.get<T>(url, config)
+    return response.data
   },
 
-  async post<T>(url: string, body: any, options: FetchOptions = {}): Promise<T> {
-    const { params, ...init } = options
-    const response = await fetch(url, {
-      ...init,
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...init.headers,
-      },
-      body: JSON.stringify(body),
-    })
-
-    return handleResponse<T>(response)
+  post: async <T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> => {
+    const response = await axiosInstance.post<T>(url, data, config)
+    return response.data
   },
 
-  async put<T>(url: string, body: any, options: FetchOptions = {}): Promise<T> {
-     const { params, ...init } = options
-    const response = await fetch(url, {
-      ...init,
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        ...init.headers,
-      },
-      body: JSON.stringify(body),
-    })
-
-    return handleResponse<T>(response)
+  put: async <T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> => {
+    const response = await axiosInstance.put<T>(url, data, config)
+    return response.data
   },
 
-  async delete<T>(url: string, options: FetchOptions = {}): Promise<T> {
-     const { params, ...init } = options
-    const response = await fetch(url, {
-      ...init,
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-        ...init.headers,
-      },
-    })
-
-    return handleResponse<T>(response)
-  }
+  delete: async <T>(url: string, config?: AxiosRequestConfig): Promise<T> => {
+    const response = await axiosInstance.delete<T>(url, config)
+    return response.data
+  },
+  
+  // Expose the raw instance if needed
+  instance: axiosInstance
 }
