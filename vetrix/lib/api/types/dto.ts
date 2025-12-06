@@ -28,6 +28,11 @@ export interface AuthResponse {
     expiresAt?: string
 }
 
+export interface RefreshTokenResponse {
+    token: string
+    expiresAt: string
+}
+
 export interface SessionResponse {
     user: UserDTO | null
     isAuthenticated: boolean
