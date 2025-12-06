@@ -19,6 +19,51 @@ class AuthenticationService {
     // Wait, let's verify if httpClient baseURL is /api or not.
     // Previous step set baseURL: "/api". So we call "/auth/login".
     
+    constructor() {
+        this.setupInterceptors()
+    }
+
+    /**
+     * Setup Axios interceptors for automatic token refreshing
+     */
+    private setupInterceptors() {
+        httpClient.instance.interceptors.response.use(
+            (response) => response,
+            async (error) => {
+                const originalRequest = error.config
+
+                // If error is 401 and we haven't retried yet
+                if (error.response?.status === 401 && !originalRequest._retry) {
+                    // Avoid infinite loops for auth routes themselves
+                    if (originalRequest.url?.includes('/auth/login') || 
+                        originalRequest.url?.includes('/auth/refresh') ||
+                        originalRequest.url?.includes('/auth/logout')) {
+                        return Promise.reject(error)
+                    }
+
+                    originalRequest._retry = true
+
+                    try {
+                        // Attempt to refresh token
+                        await this.refreshToken()
+                        
+                        // Retry original request
+                        return httpClient.instance(originalRequest)
+                    } catch (refreshError) {
+                        // Refresh failed, clear session and redirect
+                        // We do not call this.logout() to avoid loops if logout also fails
+                        if (typeof window !== 'undefined') {
+                            window.location.href = '/login'
+                        }
+                        return Promise.reject(refreshError)
+                    }
+                }
+
+                return Promise.reject(error)
+            }
+        )
+    }
+
     private getPath(path: string) {
         return `/auth${path}`
     }
