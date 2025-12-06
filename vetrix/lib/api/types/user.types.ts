@@ -103,6 +103,8 @@ export type AuditAction =
     | "bulk_role_change"
     | "login"
     | "login_failed"
+    | "logout"
+    | "session_restored"
 
 /**
  * AuditLog - Audit log entry for user actions

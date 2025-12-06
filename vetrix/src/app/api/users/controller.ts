@@ -348,7 +348,7 @@ export class UserController {
             }
 
             // Publicly allowed actions
-            if (action === "login" || action === "login_failed") {
+            if (["login", "login_failed", "logout", "session_restored"].includes(action)) {
                 // For login actions, we try to resolve the user
                 // If we have a 'login' field (email/username), try to find the user
                 let userId: number | undefined = undefined
@@ -362,11 +362,9 @@ export class UserController {
                     }
                 }
 
-                if (action === "login" && !userId) {
-                    // If success but no user found? Should not happen for success.
-                    // But if it was passed via performedBy?
-                    // The client might send the user object if known.
-                    if (body.performedBy) userId = body.performedBy
+                // If user not found by login string, or if not provided (e.g. session_restored uses ID), check performedBy
+                if (!userId && body.performedBy) {
+                    userId = body.performedBy
                 }
 
                 if (userId) {
