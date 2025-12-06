@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
 import axios from "axios"
-import { AuditLog } from "@/lib/api/types/user.types"
+import { AuditLog, AuditAction } from "@/lib/api/types/user.types"
 
 interface UseAuditLogOptions {
     userId?: number
@@ -29,5 +29,22 @@ export function useAuditLog(options: UseAuditLogOptions = {}) {
         logs: data || [],
         isLoading,
         error,
+    }
+}
+
+/**
+ * Log an audit action
+ */
+export async function logAudit(input: { 
+    action: AuditAction; 
+    status: "success" | "failure"; 
+    reason?: string; 
+    login?: string;
+    performedBy?: number
+}) {
+    try {
+        await axios.post("/api/users/audit", input)
+    } catch (error) {
+        console.error("Failed to log audit:", error)
     }
 }
