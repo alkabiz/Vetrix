@@ -4,8 +4,8 @@
  * @module services/authService
  */
 
-import type { LoginInput, AuthResponse, UserDTO } from '@/lib/api/types/dto'
-import type { RefreshTokenResponse } from '@/lib/api/types/auth.types' // Keep specifics if needed, or move them
+import type { LoginInput, AuthResponse, UserDTO, RefreshTokenResponse } from '@/lib/api/types/dto'
+import { httpClient } from '@/src/lib/api/httpClient'
 
 /**
  * Client-side authentication service
@@ -19,25 +19,9 @@ class AuthenticationService {
      * Tokens are automatically set as HttpOnly cookies by the server
      */
     async login(credentials: LoginInput): Promise<AuthResponse> {
-        const response = await fetch(`${this.baseUrl}/login`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(credentials),
-            credentials: 'include', // Important: include cookies
+        return httpClient.post<AuthResponse>(`${this.baseUrl}/login`, credentials, {
+            credentials: 'include'
         })
-
-        if (!response.ok) {
-            const error = await response.json()
-            throw new Error(error.error || 'Login failed')
-        }
-
-        const data = await response.json()
-        return {
-            user: data.user,
-            expiresAt: data.expiresAt,
-        }
     }
 
     /**
@@ -45,15 +29,9 @@ class AuthenticationService {
      * Clears all authentication cookies
      */
     async logout(): Promise<void> {
-        const response = await fetch(`${this.baseUrl}/logout`, {
-            method: 'POST',
-            credentials: 'include',
+        return httpClient.post<void>(`${this.baseUrl}/logout`, {}, {
+            credentials: 'include'
         })
-
-        if (!response.ok) {
-            const error = await response.json()
-            throw new Error(error.error || 'Logout failed')
-        }
     }
 
     /**
@@ -61,20 +39,13 @@ class AuthenticationService {
      * Uses refresh token from HttpOnly cookie
      */
     async refreshToken(): Promise<RefreshTokenResponse> {
-        const response = await fetch(`${this.baseUrl}/refresh`, {
-            method: 'POST',
-            credentials: 'include',
+        const response = await httpClient.post<{ expiresAt: string }>(`${this.baseUrl}/refresh`, {}, {
+            credentials: 'include'
         })
-
-        if (!response.ok) {
-            const error = await response.json()
-            throw new Error(error.error || 'Token refresh failed')
-        }
-
-        const data = await response.json()
+        
         return {
             token: '', // Token is in HTTPOnly cookie
-            expiresAt: data.expiresAt,
+            expiresAt: response.expiresAt,
         }
     }
 
@@ -84,18 +55,13 @@ class AuthenticationService {
      */
     async getCurrentUser(): Promise<UserDTO | null> {
         try {
-            const response = await fetch(`${this.baseUrl}/session`, {
-                credentials: 'include',
+            const data = await httpClient.get<{ user: UserDTO }>(`${this.baseUrl}/session`, {
+                credentials: 'include'
             })
-
-            if (!response.ok) {
-                return null
-            }
-
-            const data = await response.json()
-            return data.user || null
+            return data.user
         } catch (error) {
-            console.error('Failed to get current user:', error)
+            // If session check fails (e.g. 401), we just return null
+            console.warn('Failed to get current user session:', error)
             return null
         }
     }
@@ -114,6 +80,7 @@ class AuthenticationService {
      * Get CSRF token from cookie for making state-changing requests
      */
     getCSRFToken(): string | null {
+        if (typeof document === 'undefined') return null
         const name = 'vetrix_csrf_token='
         const decodedCookie = decodeURIComponent(document.cookie)
         const cookieArray = decodedCookie.split(';')
@@ -127,23 +94,7 @@ class AuthenticationService {
         return null
     }
 
-    /**
-     * Make authenticated API request with CSRF protection
-     */
-    async authenticatedFetch(url: string, options: RequestInit = {}): Promise<Response> {
-        const csrfToken = this.getCSRFToken()
-        const headers = new Headers(options.headers)
-
-        if (csrfToken && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(options.method || 'GET')) {
-            headers.set('X-CSRF-Token', csrfToken)
-        }
-
-        return fetch(url, {
-            ...options,
-            headers,
-            credentials: 'include',
-        })
-    }
+    // Helper for specialized requests if needed, but httpClient should cover most.
 }
 
 // Export singleton instance
