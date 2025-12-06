@@ -330,4 +330,75 @@ export class UserController {
             return handleApiError(error)
         }
     }
+
+
+    /**
+     * POST /api/users/audit - Create audit log entry
+     * Publicly accessible for login events, but restricted for others
+     */
+    static async createLog(request: NextRequest) {
+        try {
+            // We do NOT use logRequest here to avoid infinite loops if logRequest uses this endpoint (it doesn't, it uses console/internal)
+            
+            const body = await request.json()
+            const { action, status, reason, login } = body
+
+            if (!action) {
+                return NextResponse.json({ error: "Action is required" }, { status: 400 })
+            }
+
+            // Publicly allowed actions
+            if (action === "login" || action === "login_failed") {
+                // For login actions, we try to resolve the user
+                // If we have a 'login' field (email/username), try to find the user
+                let userId: number | undefined = undefined
+
+                if (login) {
+                    // Try to find user by email or username
+                    const allUsers = UserService.getAll()
+                    const user = allUsers.find(u => u.email === login || u.username === login)
+                    if (user) {
+                        userId = user.id
+                    }
+                }
+
+                if (action === "login" && !userId) {
+                    // If success but no user found? Should not happen for success.
+                    // But if it was passed via performedBy?
+                    // The client might send the user object if known.
+                    if (body.performedBy) userId = body.performedBy
+                }
+
+                if (userId) {
+                     const details = reason ? JSON.stringify({ reason, status }) : JSON.stringify({ status })
+                     UserService.createAuditLog(action, userId, userId, details)
+                     return NextResponse.json({ success: true })
+                } else {
+                    // Cannot log to DB if user not found (FK constraint)
+                    console.warn(`[Audit] Could not log ${action} for ${login}: User not found`)
+                    return NextResponse.json({ success: true, message: "Skipped DB log (user not found)" })
+                }
+            }
+
+            // For other actions, require authentication
+             const token = request.headers.get("authorization")?.split(" ")[1]
+             if (!token) {
+                 return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+             }
+ 
+             const decoded = verifyAccessToken(token)
+             if (!decoded) {
+                 return NextResponse.json({ error: "Invalid token" }, { status: 401 })
+             }
+             const currentUserId = decoded.id
+
+             // Validate body params
+             // ... generic logging logic if needed
+             // For now we only explicitly support the login requirements from client
+             
+             return NextResponse.json({ success: true })
+        } catch (error) {
+            return handleApiError(error)
+        }
+    }
 }
