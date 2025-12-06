@@ -95,8 +95,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (user) {
           // Log logout attempt before clearing state (best effort)
           // We fire and forget this one to not block UI
-          logAudit({
-             action: "logout",
+          logAudit("logout", {
              status: "success",
              performedBy: user.id
           })
@@ -115,8 +114,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const reason = error.message || "Error desconocido"
       
       if (user) {
-          logAudit({
-             action: "logout",
+          logAudit("logout", {
              status: "failure",
              reason,
              performedBy: user.id
@@ -154,8 +152,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           // though checking user state inside useEffect logic which runs once on mount is tricky if strict mode is on.
           // But since this is mount effect [], it runs once (twice in strict mode dev).
           // We can't easily prevent dev mode duplicates without ref, but it's acceptable.
-          logAudit({
-             action: "session_restored",
+          logAudit("session_restored", {
              status: "success",
              performedBy: currentUser.id
           })
