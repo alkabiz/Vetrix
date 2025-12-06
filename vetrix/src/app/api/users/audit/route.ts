@@ -3,3 +3,4 @@ import { UserController } from "../controller"
 
 // Audit logs endpoint
 export const GET = requireAdmin(UserController.getAuditLogs)
+export const POST = UserController.createLog
