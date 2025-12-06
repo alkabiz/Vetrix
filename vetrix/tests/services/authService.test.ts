@@ -24,9 +24,9 @@ describe('AuthService', () => {
 
         const result = await authService.login(credentials)
 
-        expect(httpClient.post).toHaveBeenCalledWith('/api/auth/login', credentials, {
-            credentials: 'include'
-        })
+        // Expect call to relative path (no /api prefix, no credentials param)
+        // Credentials are handled by axios global config, not passed here
+        expect(httpClient.post).toHaveBeenCalledWith('/auth/login', credentials)
         expect(result).toEqual(mockResponse)
     })
 
@@ -36,9 +36,8 @@ describe('AuthService', () => {
 
         const result = await authService.getCurrentUser()
 
-        expect(httpClient.get).toHaveBeenCalledWith('/api/auth/session', {
-            credentials: 'include'
-        })
+        // Expect call to relative path
+        expect(httpClient.get).toHaveBeenCalledWith('/auth/session')
         expect(result).toEqual(mockUser)
     })
 })
