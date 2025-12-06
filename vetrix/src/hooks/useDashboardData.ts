@@ -19,9 +19,7 @@ export function useDashboardData(): DashboardData {
     const { data: statsData, isLoading: statsLoading, error: statsError } = useQuery({
         queryKey: ["dashboard", "metrics"],
         queryFn: async () => {
-            return httpClient.get<DashboardMetricsDTO>("/api/dashboard/metrics", {
-                credentials: 'include'
-            })
+            return httpClient.get<DashboardMetricsDTO>("/dashboard/metrics")
         }
     })
 
@@ -30,9 +28,8 @@ export function useDashboardData(): DashboardData {
         queryKey: ["dashboard", "activity"],
         queryFn: async () => {
             // Fetch last 5 logs for dashboard
-            const response = await httpClient.get<{ logs: AuditLog[] }>("/api/users/audit", {
-                params: { limit: 5 },
-                credentials: 'include'
+            const response = await httpClient.get<{ logs: AuditLog[] }>("/users/audit", {
+                params: { limit: 5 }
             })
             return response.logs
         }
