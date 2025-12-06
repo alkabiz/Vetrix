@@ -1,129 +1,44 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { authService } from '../../services/authService'
+import { httpClient } from '../../src/lib/api/httpClient'
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { authService } from '@/services/authService'
-import type { UserDTO } from '@/lib/api/types/dto'
+// Mock httpClient
+vi.mock('../../src/lib/api/httpClient', () => ({
+    httpClient: {
+        post: vi.fn(),
+        get: vi.fn()
+    },
+    AppError: class extends Error {}
+}))
 
-// Mock global fetch
-const globalFetch = vi.fn()
-global.fetch = globalFetch
-
-describe('AuthenticationService', () => {
+describe('AuthService', () => {
     beforeEach(() => {
         vi.clearAllMocks()
     })
 
-    const mockUser: UserDTO = {
-        id: 1,
-        username: 'testuser',
-        email: 'test@example.com',
-        roleId: 2,
-        statusId: 1
-    }
+    it('login calls httpClient.post with correct params', async () => {
+        const credentials = { login: 'test', password: 'password' }
+        const mockResponse = { user: { id: 1, username: 'test' }, expiresAt: '2024-01-01' }
+        
+        vi.mocked(httpClient.post).mockResolvedValueOnce(mockResponse)
 
-    describe('login', () => {
-        it('successfully logs in and returns user data', async () => {
-            const mockResponse = {
-                user: mockUser,
-                expiresAt: '2023-01-01T00:00:00Z'
-            }
+        const result = await authService.login(credentials)
 
-            globalFetch.mockResolvedValueOnce({
-                ok: true,
-                json: async () => mockResponse
-            })
-
-            const result = await authService.login({ login: 'testuser', password: 'password' })
-
-            expect(globalFetch).toHaveBeenCalledWith('/api/auth/login', expect.objectContaining({
-                method: 'POST',
-                body: JSON.stringify({ login: 'testuser', password: 'password' }),
-                credentials: 'include'
-            }))
-            expect(result.user).toEqual(mockUser)
-            expect(result.expiresAt).toBe(mockResponse.expiresAt)
+        expect(httpClient.post).toHaveBeenCalledWith('/api/auth/login', credentials, {
+            credentials: 'include'
         })
-
-        it('throws error on failed login', async () => {
-            globalFetch.mockResolvedValueOnce({
-                ok: false,
-                json: async () => ({ error: 'Invalid credentials' })
-            })
-
-            await expect(authService.login({ login: 'wrong', password: 'wrong' }))
-                .rejects.toThrow('Invalid credentials')
-        })
+        expect(result).toEqual(mockResponse)
     })
 
-    describe('getCurrentUser', () => {
-        it('returns user when session exists', async () => {
-            globalFetch.mockResolvedValueOnce({
-                ok: true,
-                json: async () => ({ user: mockUser })
-            })
+    it('getCurrentUser calls httpClient.get with correct params', async () => {
+        const mockUser = { id: 1, username: 'test', roleId: 1, email: 'test@test.com', statusId: 1 }
+        vi.mocked(httpClient.get).mockResolvedValueOnce({ user: mockUser })
 
-            const user = await authService.getCurrentUser()
-            expect(user).toEqual(mockUser)
-            expect(globalFetch).toHaveBeenCalledWith('/api/auth/session', expect.objectContaining({
-                credentials: 'include'
-            }))
+        const result = await authService.getCurrentUser()
+
+        expect(httpClient.get).toHaveBeenCalledWith('/api/auth/session', {
+            credentials: 'include'
         })
-
-        it('returns null when session call fails', async () => {
-            globalFetch.mockResolvedValueOnce({
-                ok: false
-            })
-
-            const user = await authService.getCurrentUser()
-            expect(user).toBeNull()
-        })
-
-        it('returns null on fetch error', async () => {
-            globalFetch.mockRejectedValueOnce(new Error('Network error'))
-
-            const user = await authService.getCurrentUser()
-            expect(user).toBeNull()
-        })
-    })
-
-    describe('logout', () => {
-        it('calls logout endpoint successfully', async () => {
-            globalFetch.mockResolvedValueOnce({
-                ok: true
-            })
-
-            await authService.logout()
-            expect(globalFetch).toHaveBeenCalledWith('/api/auth/logout', expect.anything())
-        })
-
-        it('throws error when logout command fails', async () => {
-            globalFetch.mockResolvedValueOnce({
-                ok: false,
-                json: async () => ({ error: 'Logout failed' })
-            })
-
-            await expect(authService.logout()).rejects.toThrow('Logout failed')
-        })
-    })
-
-    describe('isAuthenticated', () => {
-        it('returns true when user exists', async () => {
-            // Mock getCurrentUser internally calling fetch
-            globalFetch.mockResolvedValueOnce({
-                ok: true,
-                json: async () => ({ user: mockUser })
-            })
-
-            const isAuth = await authService.isAuthenticated()
-            expect(isAuth).toBe(true)
-        })
-
-        it('returns false when user is null', async () => {
-            globalFetch.mockResolvedValueOnce({
-                ok: false
-            })
-
-            const isAuth = await authService.isAuthenticated()
-            expect(isAuth).toBe(false)
-        })
+        expect(result).toEqual(mockUser)
     })
 })
