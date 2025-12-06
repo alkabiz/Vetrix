@@ -35,15 +35,19 @@ export function useAuditLog(options: UseAuditLogOptions = {}) {
 /**
  * Log an audit action
  */
-export async function logAudit(input: { 
-    action: AuditAction; 
-    status: "success" | "failure"; 
-    reason?: string; 
-    login?: string;
-    performedBy?: number
-}) {
+/**
+ * Log an audit action
+ * Fire-and-forget wrapper for the audit log API
+ */
+export async function logAudit(action: AuditAction, details?: Record<string, any>) {
     try {
-        await axios.post("/api/users/audit", input)
+        // We use the existing endpoint which expects body properties directly,
+        // or we can wrap them. The controller looks for { action, ...body }.
+        // So we spread details into the body.
+        await axios.post("/api/users/audit", { 
+            action,
+            ...details 
+        })
     } catch (error) {
         console.error("Failed to log audit:", error)
     }
