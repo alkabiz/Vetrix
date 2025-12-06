@@ -4,7 +4,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import axios from "axios"
+import { httpClient } from "@/src/lib/api/httpClient"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -55,7 +55,7 @@ export function RegisterForm({ open, onOpenChange }: RegisterFormProps) {
     setError("")
 
     try {
-      const token = localStorage.getItem("token")
+
 
       const payload = {
         username: values.username,
@@ -72,11 +72,7 @@ export function RegisterForm({ open, onOpenChange }: RegisterFormProps) {
         mustChangePassword: values.mustChangePassword,
       }
 
-      await axios.post("/api/auth/register", payload, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
+      await httpClient.post("/auth/register", payload)
 
       toast({
         title: "Success",
@@ -84,12 +80,8 @@ export function RegisterForm({ open, onOpenChange }: RegisterFormProps) {
       })
 
       onOpenChange(false)
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        setError(error.response?.data?.error || "Error en el registro")
-      } else {
-        setError("Error en el registro")
-      }
+    } catch (error: any) {
+      setError(error.message || "Error en el registro")
     }
   }
 
