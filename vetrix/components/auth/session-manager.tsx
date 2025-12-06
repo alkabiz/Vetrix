@@ -1,4 +1,5 @@
-"use client"
+
+import { httpClient } from "@/src/lib/api/httpClient"
 
 import { useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
@@ -27,43 +28,15 @@ export function SessionManager({ open, onOpenChange }: SessionManagerProps) {
   } = useQuery({
     queryKey: ["sessions"],
     queryFn: async () => {
-      const token = localStorage.getItem("token")
-      const response = await fetch("/api/auth/sessions", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to fetch sessions")
-      }
-
-      return data.sessions as LoginSession[]
+      const data = await httpClient.get<{ sessions: LoginSession[] }>("/auth/sessions")
+      return data.sessions
     },
     enabled: open,
   })
 
   const terminateMutation = useMutation({
     mutationFn: async (sessionId: string) => {
-      const token = localStorage.getItem("token")
-      const response = await fetch("/api/auth/sessions/terminate", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ sessionId }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to terminate session")
-      }
-
-      return data
+      return await httpClient.post("/auth/sessions/terminate", { sessionId })
     },
     onMutate: (sessionId) => {
       setTerminatingId(sessionId)
