@@ -1,4 +1,4 @@
-"use client"
+import { httpClient } from "@/src/lib/api/httpClient"
 
 import { useReducer } from "react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -63,20 +63,7 @@ export function TwoFactorSetup({ open, onOpenChange, onSetupComplete }: TwoFacto
     dispatch({ type: "START_LOADING" })
 
     try {
-      const token = localStorage.getItem("token")
-      const response = await fetch("/api/auth/2fa/setup", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to setup 2FA")
-      }
+      const data = await httpClient.post<{ secret: string; qrCode: string }>("/auth/2fa/setup")
 
       dispatch({
         type: "SETUP_SUCCESS",
@@ -94,21 +81,7 @@ export function TwoFactorSetup({ open, onOpenChange, onSetupComplete }: TwoFacto
     dispatch({ type: "START_LOADING" })
 
     try {
-      const token = localStorage.getItem("token")
-      const response = await fetch("/api/auth/2fa/verify", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ code }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || "Verification failed")
-      }
+      await httpClient.post("/auth/2fa/verify", { code })
 
       toast({
         title: "Success",
