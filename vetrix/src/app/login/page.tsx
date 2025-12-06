@@ -1,9 +1,50 @@
+
 "use client"
 
-import { LoginForm } from "@/src/components/auth/LoginForm"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Stethoscope } from "lucide-react"
 
+import { LoginForm, LoginInput } from "@/src/components/LoginForm"
+import { useAuth } from "@/src/hooks/useAuth"
+import { logAudit } from "@/src/hooks/useAuditLog"
+
 export default function LoginPage() {
+  const { login, isLoading } = useAuth()
+  const router = useRouter()
+  const [loginError, setLoginError] = useState<string | null>(null)
+
+  const handleLogin = async (data: LoginInput) => {
+    setLoginError(null)
+    try {
+      await login(data)
+      
+      // Log success
+      // Note: useAuth.login handles the redirect to '/', but we log here first/parallel
+      // We pass the login username so the backend can find the user ID to log against
+      logAudit({ 
+        action: "login", 
+        status: "success",
+        login: data.login
+      })
+
+      // Explicit navigation as per requirements (though useAuth might also do it)
+      router.push('/')
+      
+    } catch (error: any) {
+      const reason = error.message || "Error al iniciar sesión"
+      setLoginError(reason)
+      
+      // Log failure
+      logAudit({
+        action: "login_failed",
+        status: "failure",
+        reason,
+        login: data.login
+      })
+    }
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <div className="w-full max-w-md">
@@ -13,7 +54,11 @@ export default function LoginPage() {
           </div>
         </div>
         
-        <LoginForm />
+        <LoginForm 
+          onSubmit={handleLogin}
+          isLoading={isLoading}
+          error={loginError}
+        />
 
         <div className="mt-8 text-center text-sm text-gray-500">
           <p className="mb-2">Credenciales de demostración:</p>
