@@ -22,8 +22,7 @@ export default function LoginPage() {
       // Log success
       // Note: useAuth.login handles the redirect to '/', but we log here first/parallel
       // We pass the login username so the backend can find the user ID to log against
-      logAudit({ 
-        action: "login", 
+      logAudit("login", { 
         status: "success",
         login: data.login
       })
@@ -36,8 +35,7 @@ export default function LoginPage() {
       setLoginError(reason)
       
       // Log failure
-      logAudit({
-        action: "login_failed",
+      logAudit("login_failed", {
         status: "failure",
         reason,
         login: data.login
