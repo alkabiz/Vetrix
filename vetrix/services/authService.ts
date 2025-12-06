@@ -12,16 +12,23 @@ import { httpClient } from '@/src/lib/api/httpClient'
  * Provides abstraction layer for cookie-based authentication
  */
 class AuthenticationService {
-    private baseUrl = '/api/auth'
+    // Base URL is now handled by httpClient (axios baseURL)
+    // We just append specific paths. 
+    // Note: httpClient has baseURL='api', but auth routes are /api/auth.
+    // If httpClient base is /api, we call /auth/login. 
+    // Wait, let's verify if httpClient baseURL is /api or not.
+    // Previous step set baseURL: "/api". So we call "/auth/login".
+    
+    private getPath(path: string) {
+        return `/auth${path}`
+    }
 
     /**
      * Login with credentials
      * Tokens are automatically set as HttpOnly cookies by the server
      */
     async login(credentials: LoginInput): Promise<AuthResponse> {
-        return httpClient.post<AuthResponse>(`${this.baseUrl}/login`, credentials, {
-            credentials: 'include'
-        })
+        return httpClient.post<AuthResponse>(this.getPath('/login'), credentials)
     }
 
     /**
@@ -29,9 +36,7 @@ class AuthenticationService {
      * Clears all authentication cookies
      */
     async logout(): Promise<void> {
-        return httpClient.post<void>(`${this.baseUrl}/logout`, {}, {
-            credentials: 'include'
-        })
+        return httpClient.post<void>(this.getPath('/logout'))
     }
 
     /**
@@ -39,9 +44,7 @@ class AuthenticationService {
      * Uses refresh token from HttpOnly cookie
      */
     async refreshToken(): Promise<RefreshTokenResponse> {
-        const response = await httpClient.post<{ expiresAt: string }>(`${this.baseUrl}/refresh`, {}, {
-            credentials: 'include'
-        })
+        const response = await httpClient.post<{ expiresAt: string }>(this.getPath('/refresh'))
         
         return {
             token: '', // Token is in HTTPOnly cookie
@@ -55,9 +58,7 @@ class AuthenticationService {
      */
     async getCurrentUser(): Promise<UserDTO | null> {
         try {
-            const data = await httpClient.get<{ user: UserDTO }>(`${this.baseUrl}/session`, {
-                credentials: 'include'
-            })
+            const data = await httpClient.get<{ user: UserDTO }>(this.getPath('/session'))
             return data.user
         } catch (error) {
             // If session check fails (e.g. 401), we just return null
@@ -93,8 +94,6 @@ class AuthenticationService {
         }
         return null
     }
-
-    // Helper for specialized requests if needed, but httpClient should cover most.
 }
 
 // Export singleton instance
