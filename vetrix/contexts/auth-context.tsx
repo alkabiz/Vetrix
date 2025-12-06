@@ -7,6 +7,7 @@ import { UserDTO, LoginInput } from "@/lib/api/types/dto"
 import { authService } from "@/services/authService"
 import { useToast } from "@/hooks/use-toast"
 import { AppError } from "@/src/lib/api/httpClient"
+import { logAudit } from "@/src/hooks/useAuditLog"
 
 interface AuthContextType {
   user: UserDTO | null
@@ -87,8 +88,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }
 
+
+
   const logout = async () => {
     try {
+      if (user) {
+          // Log logout attempt before clearing state (best effort)
+          // We fire and forget this one to not block UI
+          logAudit({
+             action: "logout",
+             status: "success",
+             performedBy: user.id
+          })
+      }
+      
       await authService.logout()
       setUser(null)
       toast({
@@ -97,8 +110,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
       })
       router.push("/login")
       router.refresh()
-    } catch (error) {
+    } catch (error: any) {
       console.error("Logout failed", error)
+      const reason = error.message || "Error desconocido"
+      
+      if (user) {
+          logAudit({
+             action: "logout",
+             status: "failure",
+             reason,
+             performedBy: user.id
+          })
+      }
+
       toast({
         variant: "destructive",
         title: "Error al salir",
@@ -125,6 +149,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
         if (currentUser) {
           setUser(currentUser)
+          // Log session restored
+          // We check if we already have a user in state to avoid duplicate logs on re-renders, 
+          // though checking user state inside useEffect logic which runs once on mount is tricky if strict mode is on.
+          // But since this is mount effect [], it runs once (twice in strict mode dev).
+          // We can't easily prevent dev mode duplicates without ref, but it's acceptable.
+          logAudit({
+             action: "session_restored",
+             status: "success",
+             performedBy: currentUser.id
+          })
         }
       } catch (error) {
         console.error("Session check failed", error)
