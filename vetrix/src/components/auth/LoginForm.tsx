@@ -48,24 +48,21 @@ export function LoginForm() {
     setError(null)
 
     try {
-      // Import authService dynamically or use from context if available
-      // Using direct service call for cleaner error handling here before simpler context update
-      const { authService } = await import("@/services/authService")
-      const response = await authService.login(data)
-      
-      if (response && response.user) {
-         // Update context state
-         // Note: Context might need to be updated to accept just UserDTO if token is cookie-only
-         // For now we pass a placeholder token to satisfy the interface
-        login("cookie-session", response.user)
-        router.push("/")
-        router.refresh()
-      } else {
-        setError("Credenciales inválidas")
-      }
+      await login(data)
     } catch (err: any) {
+      // Error is already handled by toast in context, but we can show form error too
+      // The context re-throws the error so we catch it here
+      // But we might not need to set 'error' state if toast is enough.
+      // However, keeping inline error is good UX.
       console.error(err)
-      setError(err.message || "Error al iniciar sesión")
+      
+      // If the error object has a specific structure or message, extract it.
+      // Usually the context throws the AppError or similar.
+      const message = err.message || "Error al iniciar sesión"
+      
+      // Prevent showing "Error al iniciar sesión" if it's just a generic one and toast showed something more specific?
+      // Actually, let's just set the error state.
+      setError(message)
     } finally {
       setIsLoading(false)
     }
