@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
-import axios from "axios"
+import { httpClient } from "@/src/lib/api/httpClient"
 import type { AuditLog } from "@/lib/api/types/user.types"
 import type { DashboardMetricsDTO } from "@/lib/api/types/dto"
 
@@ -19,8 +19,9 @@ export function useDashboardData(): DashboardData {
     const { data: statsData, isLoading: statsLoading, error: statsError } = useQuery({
         queryKey: ["dashboard", "metrics"],
         queryFn: async () => {
-            const response = await axios.get<DashboardMetricsDTO>("/api/dashboard/metrics")
-            return response.data
+            return httpClient.get<DashboardMetricsDTO>("/api/dashboard/metrics", {
+                credentials: 'include'
+            })
         }
     })
 
@@ -29,8 +30,11 @@ export function useDashboardData(): DashboardData {
         queryKey: ["dashboard", "activity"],
         queryFn: async () => {
             // Fetch last 5 logs for dashboard
-            const response = await axios.get<{ logs: AuditLog[] }>("/api/users/audit?limit=5")
-            return response.data.logs
+            const response = await httpClient.get<{ logs: AuditLog[] }>("/api/users/audit", {
+                params: { limit: 5 },
+                credentials: 'include'
+            })
+            return response.logs
         }
     })
 
