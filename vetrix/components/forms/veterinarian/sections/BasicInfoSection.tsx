@@ -2,7 +2,6 @@ import type React from "react"
 import { useFormContext } from "react-hook-form"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form"
 import type { VeterinarianFormValues } from "../VeterinarianForm.schema"
 
