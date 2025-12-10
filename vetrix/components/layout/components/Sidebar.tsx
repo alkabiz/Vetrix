@@ -11,7 +11,7 @@ interface SidebarProps {
     onClose: () => void
     user?: {
         username: string
-        role: string
+        role?: string
     } | null
     navigationItems: NavigationItem[]
 }

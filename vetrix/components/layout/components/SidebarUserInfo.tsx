@@ -6,10 +6,10 @@ import { getUserInitials, getRoleBadgeColor } from "../utils/role-utils"
 
 interface SidebarUserInfoProps {
     username: string
-    role: string
+    role?: string
 }
 
-export const SidebarUserInfo: React.FC<SidebarUserInfoProps> = ({ username, role }) => {
+export const SidebarUserInfo: React.FC<SidebarUserInfoProps> = ({ username, role = "user" }) => {
     return (
         <div className="p-4 border-b bg-muted/30">
             <div className="flex items-center gap-3">

@@ -12,6 +12,7 @@ export interface UserDTO {
     username: string
     email: string
     roleId: number
+    role?: string // Role name (e.g., 'admin', 'vet', 'assistant')
     statusId: number
     firstName?: string
     lastName?: string

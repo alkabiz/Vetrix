@@ -18,7 +18,7 @@ interface TopHeaderProps {
     user?: {
         username: string
         email: string
-        role: string
+        role?: string
     } | null
     onLogout: () => void
 }
