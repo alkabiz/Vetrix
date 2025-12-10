@@ -4,11 +4,11 @@ import { getUserSessions } from "@/lib/auth/auth-enhanced"
 
 export const GET = withAuth(async (request: NextRequest, { user }) => {
   try {
-    const sessions = getUserSessions(user.id)
+    const sessions = await getUserSessions(user.id)
 
     // Add current session indicator
     const currentSessionId = request.headers.get("x-session-id")
-    const sessionsWithCurrent = sessions.map((session) => ({
+    const sessionsWithCurrent = sessions.map((session: any) => ({
       ...session,
       isCurrent: session.id === currentSessionId,
     }))
