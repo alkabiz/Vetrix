@@ -5,10 +5,10 @@ import {
     incrementFailedLoginAttempts,
     isUserLocked,
     logUserActivity,
-    getUserPermissions,
-    createUser,
-} from "@/lib/database-auth"
-import { generateToken, verifyPassword } from "@/lib/auth-server"
+    getUserPermissions
+} from "@/lib/database/database-auth"
+import { createUser } from "@/lib/auth/auth"
+import { generateToken, verifyPassword } from "@/src/lib/auth-server"
 import { type LoginInput, type RegisterInput } from "./validator"
 import { AuthenticationError, ValidationError } from "@/lib/core/error-handler"
 
