@@ -1,6 +1,9 @@
-import type { User } from "@/lib/database/database"
+// Simple interface for objects that have a role (matches both User and UserDTO)
+interface UserWithRole {
+  roleId: number
+}
 
-export function hasPermission(user: User | null, permission: string): boolean {
+export function hasPermission(user: UserWithRole | null | undefined, permission: string): boolean {
   if (!user) return false
   
   // Simple role-based permission check
@@ -14,7 +17,7 @@ export function hasPermission(user: User | null, permission: string): boolean {
   return rolePermissions[user.roleId]?.includes(permission) || false
 }
 
-export function canManagePets(user: User | null): {
+export function canManagePets(user: UserWithRole | null | undefined): {
   canView: boolean
   canAdd: boolean
   canEdit: boolean
