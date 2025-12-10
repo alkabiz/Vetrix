@@ -15,10 +15,14 @@ export class AppointmentRepository {
         const db = getDatabase()
         return db
             .prepare(`
-      SELECT a.*, p.name as pet_name, o.name as owner_name
+      SELECT a.*, 
+             p.name as pet_name, 
+             o.name as owner_name,
+             v.name as veterinarian_name
       FROM appointments a
       JOIN pets p ON a.pet_id = p.id
       JOIN owners o ON a.owner_id = o.id
+      LEFT JOIN veterinarians v ON a.veterinarian_id = v.id
       WHERE a.id = ?
     `)
             .get(id)
