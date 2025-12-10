@@ -9,7 +9,7 @@ export interface User {
 
 import type { LoginSession, RefreshToken } from "./session"
 
-export type { LoginSession, RefreshToken }
+export type { LoginSession, RefreshToken, RoleName }
 
 export interface TwoFactorAuth {
     userId: number
