@@ -7,7 +7,7 @@ import {
     RefreshTokenRevokedError,
     SessionNotFoundError
 } from "./errors/session-errors"
-import type { User } from "./types/auth"
+import type { User, RoleName } from "./types/auth"
 import type { LoginSession } from "./types/session"
 
 export const sessionService = {
@@ -121,7 +121,7 @@ export const sessionService = {
             id: tokenRecord.user_id,
             username: tokenRecord.username,
             email: tokenRecord.email,
-            role: tokenRecord.role
+            role: tokenRecord.role as RoleName
         }
 
         // Find existing session to update
