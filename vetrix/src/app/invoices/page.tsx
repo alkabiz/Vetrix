@@ -13,11 +13,18 @@ import { useAppointments } from "@/src/hooks/useAppointments"
 import { InvoiceStats } from "./components/InvoiceStats"
 import { InvoiceFilters } from "./components/InvoiceFilters"
 import { InvoicesTable } from "./components/InvoicesTable"
+import { Pet } from "@/lib/database/database"
 
 export default function InvoicesPage() {
   const { invoices = [], isLoading: isLoadingInvoices, createInvoice, updateInvoice, deleteInvoice } = useInvoices()
   const { owners = [] } = useOwners()
-  const { pets = [] } = usePets()
+  const { pets: petDTOs = [] } = usePets()
+  
+  const pets: Pet[] = petDTOs.map((dto) => ({
+    ...dto,
+    dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : undefined,
+    // Add other date conversions if necessary based on Pet type
+  })) as unknown as Pet[]
   const { appointments = [] } = useAppointments()
 
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceDTO | null>(null)
