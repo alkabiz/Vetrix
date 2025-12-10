@@ -1,7 +1,7 @@
 /**
- * Convert Date object to YYYY-MM-DD string for input fields
+ * Convert Date object or ISO string to YYYY-MM-DD string for input fields
  */
-export function formatDateForInput(date: Date | null | undefined): string {
+export function formatDateForInput(date: string | Date | null | undefined): string {
   if (!date) return ""
   
   try {
