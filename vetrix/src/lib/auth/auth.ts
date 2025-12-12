@@ -59,3 +59,18 @@ export async function createUser(data: RegisterInput): Promise<any> {
         connection.release()
     }
 }
+
+export async function findUserById(userId: number | string): Promise<any> {
+    const connection = await pool.getConnection()
+    try {
+        const [users] = await connection.query<RowDataPacket[]>(
+            "SELECT * FROM usr_users WHERE id = ?",
+            [userId]
+        )
+        return users[0] || null
+    } catch (error) {
+        throw error
+    } finally {
+        connection.release()
+    }
+}
