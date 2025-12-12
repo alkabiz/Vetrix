@@ -70,7 +70,7 @@ export function useUpdateInvoice() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ id, ...invoice }: Partial<Invoice> & { id: string }) => {
+    mutationFn: async ({ id, ...invoice }: Omit<Partial<Invoice>, "id"> & { id: string }) => {
       const { data } = await apiClient.put(`/invoices/${id}`, invoice)
       return data
     },
