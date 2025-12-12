@@ -17,7 +17,7 @@ vi.mock('@/lib/database/database', () => ({
 }))
 
 import { getAccessToken } from '@/lib/auth/cookie-utils'
-import { verifyToken } from '@/lib/auth/auth'
+import { verifyToken } from "@/lib/auth-server"
 import { getDatabase } from '@/lib/database/database'
 
 describe('GET /api/dashboard/metrics', () => {
