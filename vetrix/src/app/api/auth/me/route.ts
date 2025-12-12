@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { verifyToken, findUserById } from "@/lib/auth"
+import { findUserById } from "@/lib/auth/auth"
+import { verifyToken } from "@/lib/auth-server"
 
 export async function GET(request: NextRequest) {
   try {

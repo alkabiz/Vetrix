@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getAccessToken } from "@/lib/auth/cookie-utils"
-import { verifyToken } from "@/lib/auth/auth"
+import { verifyToken } from "@/lib/auth-server"
 import { getDatabase } from "@/lib/database/database"
 import type { DashboardMetricsDTO } from "@/lib/api/types/dto"
 
