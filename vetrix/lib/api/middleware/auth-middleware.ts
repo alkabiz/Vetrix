@@ -8,6 +8,7 @@ import { verifyAccessToken } from '@/lib/auth/token-service'
 import { getAccessToken, verifyCSRFToken } from '@/lib/auth/cookie-utils'
 import { AuthErrorCode } from '@/lib/api/types/auth.types'
 import type { User } from '@/lib/database/database'
+import { hasPermission } from '@/lib/auth/permissions'
 
 export interface AuthenticatedRequest extends NextRequest {
     user?: User
@@ -167,8 +168,7 @@ export async function requirePermission(
 
     const { user, userId } = authResult
 
-    // Import permission checker
-    const { hasPermission } = await import('@/lib/auth/auth')
+    // Permission check
 
     const roleMap: Record<number, 'admin' | 'vet' | 'assistant'> = {
         1: 'admin',

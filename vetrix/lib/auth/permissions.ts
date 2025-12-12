@@ -50,3 +50,34 @@ export const checkResourcePermission = (
   }
   return false;
 };
+
+// Check permissions by string name (compatible with auth-middleware and auth-context logic)
+export const hasPermission = (role: string, permission: string): boolean => {
+    // Role mapping if needed, but we assume role is RoleName string ('admin' | 'vet' | 'assistant')
+    // If role is not a valid RoleName, default to no permissions or minimal
+    const validRoles: RoleName[] = ['admin', 'vet', 'assistant'];
+    if (!validRoles.includes(role as RoleName)) return false;
+    const roleName = role as RoleName;
+
+    switch (permission) {
+      case "manage_users":
+        return permissions.canManageUsers(roleName);
+      case "manage_medical_records":
+        return permissions.canManageMedicalRecords(roleName);
+      case "delete_records":
+         // Mapping "delete_records" to canDelete or explicit check
+         // In auth-context: [1, 2] (admin, vet)
+        return permissions.canDelete(roleName); 
+      case "view_all":
+         // In auth-context: [1, 2, 3]. permissions.canViewAllRecords is [1,2]. 
+         // But permissions.canViewBasicInfo is [1,2,3].
+         // However, "view_all" usually implies everything safe to view.
+         // Let's explicitly define it to match auth-context [1, 2, 3] logic
+         return ['admin', 'vet', 'assistant'].includes(roleName);
+      case "create_basic":
+         // In auth-context: [1, 2, 3]
+         return ['admin', 'vet', 'assistant'].includes(roleName);
+      default:
+        return false;
+    }
+}
