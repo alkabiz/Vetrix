@@ -1,5 +1,5 @@
 import pool from "@/lib/db"
-import { RowDataPacket, ResultSetHeader } from "mysql2"
+import { RowDataPacket } from "mysql2"
 
 export interface DatabaseUser extends RowDataPacket {
   id: number
@@ -86,7 +86,7 @@ export async function logUserActivity(
 }
 
 export async function getUserPermissions(userId: number): Promise<string[]> {
-  const [rows] = await pool.query<RowDataPacket[]>(`
+  const [rows] = await pool.query<(RowDataPacket & { name: string })[]>(`
     SELECT p.name 
     FROM cat_permissions p
     JOIN usr_role_permissions rp ON p.id = rp.permission_id
