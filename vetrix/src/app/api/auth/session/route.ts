@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { verifyToken, findUserById } from "@/lib/auth/auth"
+import { findUserById } from "@/lib/auth/auth"
+import { verifyToken } from "@/lib/auth-server"
 import { getAccessToken } from "@/lib/auth/cookie-utils"
 import { getUserPermissions } from "@/lib/database/database-auth"
 
