@@ -29,7 +29,7 @@ const TestComponent = () => {
     return (
         <div>
             <div data-testid="user-name">{user?.username || 'Guest'}</div>
-            <button onClick={() => login('token', { id: 1, username: 'testuser', roleId: 3, email: 'test@example.com', statusId: 1 })}>Login</button>
+            <button onClick={() => login({ login: 'testuser', password: 'password' })}>Login</button>
             <button onClick={() => logout()}>Logout</button>
             <div data-testid="can-delete">{hasPermission('delete_records') ? 'Yes' : 'No'}</div>
             <div data-testid="can-view">{hasPermission('view_all') ? 'Yes' : 'No'}</div>
@@ -85,6 +85,9 @@ describe('AuthContext', () => {
 
     it('exercises manual login updating state', async () => {
         vi.mocked(authService.getCurrentUser).mockResolvedValue(null)
+        vi.mocked(authService.login).mockResolvedValue({ 
+            user: { id: 1, username: 'testuser', roleId: 3, email: 'test@example.com', statusId: 1 }
+        } as any)
 
         render(
             <AuthProvider>
