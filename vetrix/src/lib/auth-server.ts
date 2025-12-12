@@ -25,3 +25,16 @@ export function generateToken(user: Omit<DatabaseUser, "password_hash">): string
   // Generate token that expires in 1 hour
   return jwt.sign(payload, jwtSecret, { expiresIn: "1h" })
 }
+
+export function verifyToken(token: string): any {
+  const jwtSecret = process.env.JWT_SECRET
+  if (!jwtSecret) {
+      throw new Error("JWT_SECRET is not defined in environment variables")
+  }
+  
+  try {
+      return jwt.verify(token, jwtSecret)
+  } catch (error) {
+      return null
+  }
+}
