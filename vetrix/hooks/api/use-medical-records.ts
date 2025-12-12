@@ -70,7 +70,7 @@ export function useUpdateMedicalRecord() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ id, ...record }: Partial<MedicalRecord> & { id: string }) => {
+    mutationFn: async ({ id, ...record }: Omit<Partial<MedicalRecord>, "id"> & { id: string }) => {
       const { data } = await apiClient.put(`/medical-records/${id}`, record)
       return data
     },
