@@ -60,18 +60,36 @@ describe('AuthenticationService', () => {
   })
 
   describe('getCurrentUser', () => {
-    it('should return user when session exists', async () => {
+    it('should return user and permissions when session exists', async () => {
+      const mockUser = { id: 1, username: 'test' }
+      const mockPermissions = ['users.view', 'users.create']
+      vi.mocked(httpClient.get).mockResolvedValue({ user: mockUser, permissions: mockPermissions })
+
+      const result = await authService.getCurrentUser()
+
+      expect(httpClient.get).toHaveBeenCalledWith('/auth/session')
+      expect(result).toEqual({ user: mockUser, permissions: mockPermissions })
+    })
+
+    it('should return empty permissions array when server omits them', async () => {
       const mockUser = { id: 1, username: 'test' }
       vi.mocked(httpClient.get).mockResolvedValue({ user: mockUser })
 
       const result = await authService.getCurrentUser()
 
-      expect(httpClient.get).toHaveBeenCalledWith('/auth/session')
-      expect(result).toEqual(mockUser)
+      expect(result).toEqual({ user: mockUser, permissions: [] })
     })
 
     it('should return null when session check fails', async () => {
       vi.mocked(httpClient.get).mockRejectedValue(new Error('Unauthorized'))
+
+      const result = await authService.getCurrentUser()
+
+      expect(result).toBeNull()
+    })
+
+    it('should return null when user is null in response', async () => {
+      vi.mocked(httpClient.get).mockResolvedValue({ user: null })
 
       const result = await authService.getCurrentUser()
 

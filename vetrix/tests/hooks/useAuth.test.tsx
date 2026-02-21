@@ -66,7 +66,7 @@ describe('useAuth Hook', () => {
 
     it('should restore session on mount if user exists', async () => {
         const mockUser = { id: 1, username: 'test' } as any
-        vi.mocked(authService.getCurrentUser).mockResolvedValue(mockUser)
+        vi.mocked(authService.getCurrentUser).mockResolvedValue({ user: mockUser, permissions: ['view_all'] })
 
         const { result } = renderHook(() => useAuth(), { wrapper })
 
@@ -97,7 +97,7 @@ describe('useAuth Hook', () => {
     it('should logout successfully', async () => {
         // Start authenticated
         const mockUser = { id: 1, username: 'test' } as any
-        vi.mocked(authService.getCurrentUser).mockResolvedValue(mockUser)
+        vi.mocked(authService.getCurrentUser).mockResolvedValue({ user: mockUser, permissions: ['view_all'] })
 
         const { result } = renderHook(() => useAuth(), { wrapper })
         await waitFor(() => expect(result.current.user).toEqual(mockUser))
