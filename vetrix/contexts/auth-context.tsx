@@ -11,6 +11,7 @@ import { logAudit } from "@/src/hooks/useAuditLog"
 
 interface AuthContextType {
   user: UserDTO | null
+  permissions: string[]
   login: (credentials: LoginInput) => Promise<void>
   logout: () => Promise<void>
   isLoading: boolean
@@ -35,16 +36,22 @@ interface AuthProviderProps {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<UserDTO | null>(null)
+  const [permissions, setPermissions] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
   const pathname = usePathname()
   const { toast } = useToast()
 
-  // Permission checking function
+  // Permission checking function — uses server permissions with roleId fallback
   const hasPermission = useCallback((permission: string): boolean => {
     if (!user) return false
 
-    // Role IDs: 1=admin, 2=vet, 3=assistant
+    // Use server-provided permissions if available
+    if (permissions.length > 0) {
+      return permissions.includes(permission)
+    }
+
+    // Fallback: Role IDs: 1=admin, 2=vet, 3=assistant
     switch (permission) {
       case "manage_users":
         return user.roleId === 1
@@ -59,7 +66,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       default:
         return false
     }
-  }, [user])
+  }, [user, permissions])
 
   const login = async (credentials: LoginInput) => {
     try {
@@ -67,6 +74,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const response = await authService.login(credentials)
       if (response && response.user) {
          setUser(response.user)
+         // Store permissions from login response
+         if (response.permissions) {
+           setPermissions(response.permissions)
+         }
          toast({
            title: "Bienvenido",
            description: `Has iniciado sesión como ${response.user.username}`,
@@ -103,6 +114,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       
       await authService.logout()
       setUser(null)
+      setPermissions([])
       toast({
         title: "Sesión cerrada",
         description: "Has cerrado sesión correctamente",
@@ -133,33 +145,31 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        let currentUser = await authService.getCurrentUser()
+        let sessionResult = await authService.getCurrentUser()
         
         // If no active session, try to refresh (handles expired access token but valid refresh cookie)
-        if (!currentUser) {
+        if (!sessionResult) {
           try {
             await authService.refreshToken()
-            currentUser = await authService.getCurrentUser()
+            sessionResult = await authService.getCurrentUser()
           } catch {
             // Refresh failed or no refresh token - user remains unauthenticated
           }
         }
 
-        if (currentUser) {
-          setUser(currentUser)
+        if (sessionResult) {
+          setUser(sessionResult.user)
+          setPermissions(sessionResult.permissions)
           // Log session restored
-          // We check if we already have a user in state to avoid duplicate logs on re-renders, 
-          // though checking user state inside useEffect logic which runs once on mount is tricky if strict mode is on.
-          // But since this is mount effect [], it runs once (twice in strict mode dev).
-          // We can't easily prevent dev mode duplicates without ref, but it's acceptable.
           logAudit("session_restored", {
              status: "success",
-             performedBy: currentUser.id
+             performedBy: sessionResult.user.id
           })
         }
       } catch (error) {
         console.error("Session check failed", error)
         setUser(null)
+        setPermissions([])
       } finally {
         setIsLoading(false)
       }
@@ -184,6 +194,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const value = {
     user,
+    permissions,
     login,
     logout,
     isLoading,
