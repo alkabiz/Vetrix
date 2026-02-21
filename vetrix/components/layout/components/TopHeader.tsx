@@ -1,4 +1,5 @@
 import type React from "react"
+import Link from "next/link"
 import { Menu, Bell, User, Settings, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -36,10 +37,12 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ onMenuClick, user, onLogou
             </div>
 
             <div className="flex items-center gap-3">
-                <Button variant="ghost" size="sm" className="relative">
-                    <Bell className="h-4 w-4" />
-                    <span className="absolute -top-1 -right-1 h-2 w-2 bg-red-500 rounded-full"></span>
-                </Button>
+                <Link href="/notifications">
+                    <Button variant="ghost" size="sm" className="relative">
+                        <Bell className="h-4 w-4" />
+                        <span className="absolute -top-1 -right-1 h-2 w-2 bg-red-500 rounded-full"></span>
+                    </Button>
+                </Link>
 
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -64,13 +67,17 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ onMenuClick, user, onLogou
                             </div>
                         </div>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem>
-                            <User className="mr-2 h-4 w-4" />
-                            <span>Perfil</span>
+                        <DropdownMenuItem asChild>
+                            <Link href="/profile" className="flex items-center cursor-pointer">
+                                <User className="mr-2 h-4 w-4" />
+                                <span>Perfil</span>
+                            </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
-                            <Settings className="mr-2 h-4 w-4" />
-                            <span>Ajustes</span>
+                        <DropdownMenuItem asChild>
+                            <Link href="/settings" className="flex items-center cursor-pointer">
+                                <Settings className="mr-2 h-4 w-4" />
+                                <span>Ajustes</span>
+                            </Link>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={onLogout} className="text-red-600 focus:text-red-600">
