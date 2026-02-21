@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { findUserById } from "@/lib/auth/auth"
 import { verifyToken } from "@/lib/auth-server"
+import { getUserPermissions } from "@/lib/database/database-auth"
 
 export async function GET(request: NextRequest) {
   try {
@@ -23,7 +24,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 })
     }
 
-    return NextResponse.json({ user })
+    // Get permissions for the user
+    const permissions = await getUserPermissions(decoded.id)
+
+    // Remove sensitive data
+    const { password_hash, ...userWithoutPassword } = user as any
+
+    return NextResponse.json({ user: userWithoutPassword, permissions })
   } catch (error) {
     console.error("Error de verificación de autenticación:", error)
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 })
