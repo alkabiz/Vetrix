@@ -185,26 +185,21 @@ export class UserService {
     ): void {
         const db = getDatabase()
 
-        // First, ensure the audit_logs table exists
-        db.exec(`
-            CREATE TABLE IF NOT EXISTS usr_audit_logs (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER,
-                action TEXT NOT NULL,
-                performed_by INTEGER NOT NULL,
-                details TEXT,
-                created_at TEXT NOT NULL DEFAULT (datetime('now')),
-                FOREIGN KEY (user_id) REFERENCES usr_users(id) ON DELETE SET NULL,
-                FOREIGN KEY (performed_by) REFERENCES usr_users(id) ON DELETE CASCADE
-            )
-        `)
-
+        // We use the existing usr_user_activity_log table. 
+        // Mapping:
+        // performedBy -> user_id (The actor)
+        // action -> action
+        // userId -> resource_id (The target resource, usually a user)
+        // details -> new_values (Storing details/JSON here)
+        // resource_type -> 'user_management' (Static for this service)
+        
         const query = `
-            INSERT INTO usr_audit_logs (user_id, action, performed_by, details)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO usr_user_activity_log (user_id, action, resource_type, resource_id, new_values)
+            VALUES (?, ?, ?, ?, ?)
         `
 
-        db.prepare(query).run(userId || null, action, performedBy, details || null)
+        // resource_type defaulting to "user_management" for this service's actions
+        db.prepare(query).run(performedBy, action, "user_management", userId || null, details || null)
     }
 
     /**
@@ -213,32 +208,25 @@ export class UserService {
     static getAuditLogs(userId?: number, limit: number = 100): AuditLog[] {
         const db = getDatabase()
 
-        // Ensure table exists
-        db.exec(`
-            CREATE TABLE IF NOT EXISTS usr_audit_logs (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER,
-                action TEXT NOT NULL,
-                performed_by INTEGER NOT NULL,
-                details TEXT,
-                created_at TEXT NOT NULL DEFAULT (datetime('now')),
-                FOREIGN KEY (user_id) REFERENCES usr_users(id) ON DELETE SET NULL,
-                FOREIGN KEY (performed_by) REFERENCES usr_users(id) ON DELETE CASCADE
-            )
-        `)
-
+        // Query matching the schema in usr_user_activity_log
         let query = `
             SELECT 
-                al.*,
+                al.id,
+                al.user_id as performedBy,
+                al.action,
+                al.resource_id as userId,
+                al.new_values as details,
+                al.created_at as createdAt,
                 u.username as performedByUsername
-            FROM usr_audit_logs al
-            LEFT JOIN usr_users u ON al.performed_by = u.id
+            FROM usr_user_activity_log al
+            LEFT JOIN usr_users u ON al.user_id = u.id
         `
 
         const params: any[] = []
 
         if (userId !== undefined) {
-            query += " WHERE al.user_id = ?"
+            // If filtering by "target user" (resource_id)
+            query += " WHERE al.resource_id = ?"
             params.push(userId)
         }
 
