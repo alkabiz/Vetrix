@@ -100,11 +100,13 @@ class AuthenticationService {
     /** 
      * Get current user session
      * Note: This requires the server to implement /api/auth/session endpoint
+     * Returns both user and permissions from the session
      */
-    async getCurrentUser(): Promise<UserDTO | null> {
+    async getCurrentUser(): Promise<{ user: UserDTO; permissions: string[] } | null> {
         try {
-            const data = await httpClient.get<{ user: UserDTO }>(this.getPath('/session'))
-            return data.user
+            const data = await httpClient.get<{ user: UserDTO; permissions?: string[] }>(this.getPath('/session'))
+            if (!data.user) return null
+            return { user: data.user, permissions: data.permissions || [] }
         } catch (error) {
             // If session check fails (e.g. 401), we just return null
             console.warn('Failed to get current user session:', error)

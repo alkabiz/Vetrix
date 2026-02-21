@@ -25,6 +25,7 @@ export interface LoginInput {
 
 export interface AuthResponse {
     user: UserDTO
+    permissions?: string[]
     // Token is handled via HttpOnly cookie, but we might return expiration info
     expiresAt?: string
 }
