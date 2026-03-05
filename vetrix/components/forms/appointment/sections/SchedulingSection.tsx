@@ -10,9 +10,9 @@ import { APPOINTMENT_FORM_CONFIG, DURATION_OPTIONS } from "../AppointmentForm.ty
 export function SchedulingSection({
   formData,
   errors,
-  statusOptions,
-  typeOptions,
-  priorityOptions,
+  statusOptions = [],
+  typeOptions = [],
+  priorityOptions = [],
   onFieldChange
 }: SchedulingSectionProps) {
   const now = new Date().toISOString().slice(0, 16)
@@ -25,12 +25,12 @@ export function SchedulingSection({
       <CardContent className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="appointmentDatetime">Date & Time *</Label>
+            <Label htmlFor="appointmentDatetime">Date &amp; Time *</Label>
             <Input
               id="appointmentDatetime"
               type="datetime-local"
               min={APPOINTMENT_FORM_CONFIG.allowPastAppointments ? undefined : now}
-              value={formData.appointmentDatetime}
+              value={formData.appointmentDatetime ?? ""}
               onChange={(e) => onFieldChange("appointmentDatetime", e.target.value)}
               className={errors.appointmentDatetime ? "border-destructive" : ""}
               required
@@ -43,11 +43,11 @@ export function SchedulingSection({
           <div className="space-y-2">
             <Label htmlFor="durationMinutes">Duration (minutes) *</Label>
             <Select
-              value={String(formData.durationMinutes)}
+              value={formData.durationMinutes ? String(formData.durationMinutes) : ""}
               onValueChange={(value) => onFieldChange("durationMinutes", Number(value))}
             >
               <SelectTrigger>
-                <SelectValue />
+                <SelectValue placeholder="Select duration" />
               </SelectTrigger>
               <SelectContent>
                 {DURATION_OPTIONS.map((option) => (
@@ -64,11 +64,11 @@ export function SchedulingSection({
           <div className="space-y-2">
             <Label htmlFor="statusId">Status</Label>
             <Select
-              value={String(formData.statusId)}
+              value={formData.statusId ? String(formData.statusId) : ""}
               onValueChange={(value) => onFieldChange("statusId", Number(value))}
             >
               <SelectTrigger>
-                <SelectValue />
+                <SelectValue placeholder="Select status" />
               </SelectTrigger>
               <SelectContent>
                 {statusOptions.map((status) => (
@@ -83,11 +83,11 @@ export function SchedulingSection({
           <div className="space-y-2">
             <Label htmlFor="typeId">Type</Label>
             <Select
-              value={String(formData.typeId)}
+              value={formData.typeId ? String(formData.typeId) : ""}
               onValueChange={(value) => onFieldChange("typeId", Number(value))}
             >
               <SelectTrigger>
-                <SelectValue />
+                <SelectValue placeholder="Select type" />
               </SelectTrigger>
               <SelectContent>
                 {typeOptions.map((type) => (
@@ -102,11 +102,11 @@ export function SchedulingSection({
           <div className="space-y-2">
             <Label htmlFor="priorityId">Priority</Label>
             <Select
-              value={String(formData.priorityId)}
+              value={formData.priorityId ? String(formData.priorityId) : ""}
               onValueChange={(value) => onFieldChange("priorityId", Number(value))}
             >
               <SelectTrigger>
-                <SelectValue />
+                <SelectValue placeholder="Select priority" />
               </SelectTrigger>
               <SelectContent>
                 {priorityOptions.map((priority) => (
