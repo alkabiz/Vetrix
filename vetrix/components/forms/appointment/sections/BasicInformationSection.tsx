@@ -9,10 +9,12 @@ import type { BasicInformationSectionProps } from "../AppointmentForm.types"
 export function BasicInformationSection({
   formData,
   errors,
-  owners,
-  veterinarians,
-  filteredPets,
-  onFieldChange
+  owners = [],
+  veterinarians = [],
+  filteredPets = [],
+  onFieldChange,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  disabled = false,
 }: BasicInformationSectionProps) {
   return (
     <Card>
@@ -25,7 +27,7 @@ export function BasicInformationSection({
             <Label htmlFor="appointmentNumber">Appointment Number *</Label>
             <Input
               id="appointmentNumber"
-              value={formData.appointmentNumber}
+              value={formData.appointmentNumber ?? ""}
               onChange={(e) => onFieldChange("appointmentNumber", e.target.value)}
               required
               className={errors.appointmentNumber ? "border-destructive" : ""}
@@ -38,7 +40,7 @@ export function BasicInformationSection({
           <div className="space-y-2">
             <Label htmlFor="ownerId">Owner *</Label>
             <Select
-              value={String(formData.ownerId)}
+              value={formData.ownerId ? String(formData.ownerId) : ""}
               onValueChange={(value) => onFieldChange("ownerId", value === "" ? "" : Number(value))}
             >
               <SelectTrigger className={errors.ownerId ? "border-destructive" : ""}>
@@ -60,7 +62,7 @@ export function BasicInformationSection({
           <div className="space-y-2">
             <Label htmlFor="petId">Pet *</Label>
             <Select
-              value={String(formData.petId)}
+              value={formData.petId ? String(formData.petId) : ""}
               onValueChange={(value) => onFieldChange("petId", value === "" ? "" : Number(value))}
               disabled={!formData.ownerId}
             >
@@ -81,7 +83,7 @@ export function BasicInformationSection({
           <div className="space-y-2">
             <Label htmlFor="veterinarianId">Assigned Veterinarian</Label>
             <Select
-              value={String(formData.veterinarianId)}
+              value={formData.veterinarianId ? String(formData.veterinarianId) : ""}
               onValueChange={(value) => onFieldChange("veterinarianId", value === "" ? "" : Number(value))}
             >
               <SelectTrigger>
