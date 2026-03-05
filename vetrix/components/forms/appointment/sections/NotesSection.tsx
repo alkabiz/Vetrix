@@ -19,7 +19,7 @@ export function NotesSection({
           <Label htmlFor="notes">Public Notes</Label>
           <Textarea
             id="notes"
-            value={formData.notes}
+            value={formData.notes ?? ""}
             onChange={(e) => onFieldChange("notes", e.target.value)}
             rows={2}
             placeholder="Notes visible to staff and clients..."
@@ -30,7 +30,7 @@ export function NotesSection({
           <Label htmlFor="internalNotes">Internal Notes</Label>
           <Textarea
             id="internalNotes"
-            value={formData.internalNotes}
+            value={formData.internalNotes ?? ""}
             onChange={(e) => onFieldChange("internalNotes", e.target.value)}
             rows={2}
             placeholder="Internal notes for staff only..."
