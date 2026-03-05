@@ -14,14 +14,14 @@ export function FollowUpSection({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg">Follow-up & Reminders</CardTitle>
+        <CardTitle className="text-lg">Follow-up &amp; Reminders</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-3">
           <div className="flex items-center space-x-2">
             <Checkbox
               id="isFollowUp"
-              checked={formData.isFollowUp}
+              checked={formData.isFollowUp ?? false}
               onCheckedChange={(checked) => onFieldChange("isFollowUp", checked as boolean)}
             />
             <Label htmlFor="isFollowUp">This is a follow-up appointment</Label>
@@ -32,7 +32,7 @@ export function FollowUpSection({
               <div className="flex items-center space-x-2">
                 <Checkbox
                   id="confirmationRequired"
-                  checked={formData.confirmationRequired}
+                  checked={formData.confirmationRequired ?? false}
                   onCheckedChange={(checked) => onFieldChange("confirmationRequired", checked as boolean)}
                 />
                 <Label htmlFor="confirmationRequired">Confirmation required</Label>
@@ -41,7 +41,7 @@ export function FollowUpSection({
               <div className="flex items-center space-x-2">
                 <Checkbox
                   id="isConfirmed"
-                  checked={formData.isConfirmed}
+                  checked={formData.isConfirmed ?? false}
                   onCheckedChange={(checked) => onFieldChange("isConfirmed", checked as boolean)}
                 />
                 <Label htmlFor="isConfirmed">Appointment confirmed</Label>
@@ -52,7 +52,7 @@ export function FollowUpSection({
           <div className="flex items-center space-x-2">
             <Checkbox
               id="followUpRequired"
-              checked={formData.followUpRequired}
+              checked={formData.followUpRequired ?? false}
               onCheckedChange={(checked) => onFieldChange("followUpRequired", checked as boolean)}
             />
             <Label htmlFor="followUpRequired">Follow-up required</Label>
@@ -66,7 +66,7 @@ export function FollowUpSection({
               <Input
                 id="followUpDate"
                 type="date"
-                value={formData.followUpDate}
+                value={formData.followUpDate ?? ""}
                 onChange={(e) => onFieldChange("followUpDate", e.target.value)}
               />
             </div>
@@ -75,7 +75,7 @@ export function FollowUpSection({
               <Label htmlFor="followUpReason">Follow-up Reason</Label>
               <Input
                 id="followUpReason"
-                value={formData.followUpReason}
+                value={formData.followUpReason ?? ""}
                 onChange={(e) => onFieldChange("followUpReason", e.target.value)}
                 placeholder="Reason for follow-up"
               />
