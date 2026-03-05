@@ -20,6 +20,7 @@ export function generateToken(user: Omit<DatabaseUser, "password_hash">): string
     email: user.email,
     role: user.role,
     username: user.username,
+    type: "access",
   }
 
   // Generate token that expires in 1 hour

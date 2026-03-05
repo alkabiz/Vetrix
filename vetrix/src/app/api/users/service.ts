@@ -194,12 +194,18 @@ export class UserService {
         // resource_type -> 'user_management' (Static for this service)
         
         const query = `
-            INSERT INTO usr_user_activity_log (user_id, action, resource_type, resource_id, new_values)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO usr_user_activity_log (user_id, action, resource_type, resource_id, new_values, severity)
+            VALUES (?, ?, ?, ?, ?, ?)
         `
 
         // resource_type defaulting to "user_management" for this service's actions
-        db.prepare(query).run(performedBy, action, "user_management", userId || null, details || null)
+        // severity defaults to "low" for user-management events; escalate if needed
+        try {
+            db.prepare(query).run(performedBy, action, "user_management", userId || null, details || null, "low")
+        } catch (err) {
+            // Audit log failures must not crash the caller (missing table, FK constraint, etc.)
+            console.warn("[Audit] Failed to write audit log:", (err as Error).message)
+        }
     }
 
     /**

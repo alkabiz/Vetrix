@@ -1,6 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { verifyToken, extractTokenFromRequest, hasPermission } from "../auth"
+import { extractTokenFromRequest, hasPermission } from "../auth"
+import { verifyToken } from "../../src/lib/auth-server"
 import { getUserPermissions } from "../database/database-auth"
+import { AUTH_COOKIE_NAMES } from "../api/types/auth.types"
 import type { RoleName } from "../core/types"
 
 // Tipo para el contexto de autenticación
@@ -36,7 +38,7 @@ export function withAuth<TContext extends { params?: Record<string, string> } = 
       const token =
         extractTokenFromRequest(request) ||
         request.headers.get("x-auth-token") ||
-        request.cookies.get("auth-token")?.value
+        request.cookies.get(AUTH_COOKIE_NAMES.ACCESS_TOKEN)?.value
 
       if (!token) {
         return createErrorResponse("Se requiere token de autorización", 401)
