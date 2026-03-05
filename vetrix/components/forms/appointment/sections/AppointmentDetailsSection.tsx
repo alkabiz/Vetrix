@@ -1,8 +1,8 @@
 "use client"
 
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { AppointmentDetailsSectionProps } from "../AppointmentForm.types"
 import { APPOINTMENT_FORM_CONFIG } from "../AppointmentForm.types"
@@ -22,7 +22,7 @@ export function AppointmentDetailsSection({
           <Label htmlFor="reason">Reason for Visit *</Label>
           <Textarea
             id="reason"
-            value={formData.reason}
+            value={formData.reason ?? ""}
             onChange={(e) => onFieldChange("reason", e.target.value)}
             rows={2}
             placeholder="Describe the reason for this appointment..."
@@ -36,7 +36,7 @@ export function AppointmentDetailsSection({
           <Label htmlFor="petConditionOnArrival">Pet Condition on Arrival</Label>
           <Textarea
             id="petConditionOnArrival"
-            value={formData.petConditionOnArrival}
+            value={formData.petConditionOnArrival ?? ""}
             onChange={(e) => onFieldChange("petConditionOnArrival", e.target.value)}
             rows={2}
             placeholder="Describe the pet's condition when they arrive..."
@@ -52,7 +52,7 @@ export function AppointmentDetailsSection({
                 type="number"
                 min="0"
                 step="0.01"
-                value={formData.estimatedCost}
+                value={formData.estimatedCost ?? ""}
                 onChange={(e) => onFieldChange("estimatedCost", e.target.value === "" ? "" : Number(e.target.value))}
                 placeholder="0.00"
               />
@@ -65,7 +65,7 @@ export function AppointmentDetailsSection({
                 type="number"
                 min="0"
                 step="0.01"
-                value={formData.actualCost}
+                value={formData.actualCost ?? ""}
                 onChange={(e) => onFieldChange("actualCost", e.target.value === "" ? "" : Number(e.target.value))}
                 placeholder="0.00"
               />
