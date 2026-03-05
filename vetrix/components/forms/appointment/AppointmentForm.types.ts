@@ -76,7 +76,7 @@ export interface BasicInformationSectionProps {
   formData: AppointmentFormData
   errors: AppointmentFormErrors
   owners: OwnerDTO[]
-  pets: PetDTO[]
+  pets?: PetDTO[]
   veterinarians: Veterinarian[]
   filteredPets: PetDTO[]
   onFieldChange: <K extends keyof AppointmentFormData>(
