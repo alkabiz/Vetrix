@@ -239,7 +239,7 @@ export function AppointmentForm({
             owners={owners}
             veterinarians={veterinarians}
             filteredPets={filteredPets}
-            onFieldChange={handleFieldChange} pets={[]} />
+            onFieldChange={handleFieldChange} />
 
           <SchedulingSection
             formData={formData}
