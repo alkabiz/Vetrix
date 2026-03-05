@@ -8,7 +8,7 @@ vi.mock('@/lib/auth/cookie-utils', () => ({
     getAccessToken: vi.fn()
 }))
 
-vi.mock('@/lib/auth/auth', () => ({
+vi.mock('@/lib/auth-server', () => ({
     verifyToken: vi.fn()
 }))
 
@@ -17,7 +17,7 @@ vi.mock('@/lib/database/database', () => ({
 }))
 
 import { getAccessToken } from '@/lib/auth/cookie-utils'
-import { verifyToken } from "@/lib/auth-server"
+import { verifyToken } from '@/lib/auth-server'
 import { getDatabase } from '@/lib/database/database'
 
 describe('GET /api/dashboard/metrics', () => {
@@ -30,7 +30,7 @@ describe('GET /api/dashboard/metrics', () => {
     }
 
     it('returns 401 if no token provided', async () => {
-        vi.mocked(getAccessToken).mockReturnValue(null)
+        vi.mocked(getAccessToken).mockReturnValue(null as any)
 
         const response = await GET(createRequest())
         expect(response.status).toBe(401)
